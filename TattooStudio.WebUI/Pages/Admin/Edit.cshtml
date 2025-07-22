@@ -1,0 +1,41 @@
+﻿@page "{id:int}"
+@model TattooStudio.WebUI.Pages.Admin.Studios.EditModel
+@{
+    ViewData["Title"] = "Editar Estúdio";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4>@Model.Studio.City - @Model.Studio.State</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-6 col-lg-5">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Studio.Id" />
+
+            <div class="mb-3">
+                <label asp-for="Studio.City" class="form-label">Cidade</label>
+                <input asp-for="Studio.City" class="form-control" />
+                <span asp-validation-for="Studio.City" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Studio.State" class="form-label">Estado</label>
+                <input asp-for="Studio.State" class="form-control" />
+                <span asp-validation-for="Studio.State" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Studio.Address" class="form-label">Endereço</label>
+                <textarea asp-for="Studio.Address" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Studio.Address" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                <a asp-page="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
