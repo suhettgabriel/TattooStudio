@@ -13,22 +13,26 @@ namespace TattooStudio.WebUI.Pages
         private readonly ITattooRequestRepository _requestRepo;
         private readonly IFileStorageService _fileStorage;
         private readonly IStudioRepository _studioRepo;
+        private readonly ISystemSettingRepository _settingsRepo;
 
         public SolicitarAgendamentoModel(
             IFormFieldRepository formFieldRepo,
             ITattooRequestRepository requestRepo,
             IFileStorageService fileStorage,
-            IStudioRepository studioRepo)
+            IStudioRepository studioRepo,
+            ISystemSettingRepository settingsRepo)
         {
             _formFieldRepo = formFieldRepo;
             _requestRepo = requestRepo;
             _fileStorage = fileStorage;
             _studioRepo = studioRepo;
+            _settingsRepo = settingsRepo;
         }
 
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
+        public bool IsAgendaOpen { get; set; }
         public IList<FormField> FormFields { get; set; } = new List<FormField>();
         public SelectList StudioOptions { get; set; }
 
@@ -40,9 +44,15 @@ namespace TattooStudio.WebUI.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            await LoadInitialDataAsync();
+            if (!IsAgendaOpen)
+            {
+                ModelState.AddModelError(string.Empty, "A agenda está fechada no momento.");
+                return Page();
+            }
+
             if (!ModelState.IsValid)
             {
-                await LoadInitialDataAsync();
                 return Page();
             }
 
@@ -54,12 +64,10 @@ namespace TattooStudio.WebUI.Pages
 
         private async Task LoadInitialDataAsync()
         {
-            FormFields = await _formFieldRepo.GetAllAsync();
-            if (!FormFields.Any())
-            {
-                ModelState.AddModelError(string.Empty, "O formulário de agendamento ainda não foi configurado pela administradora.");
-            }
+            var settings = await _settingsRepo.GetSettingsAsync();
+            IsAgendaOpen = settings.IsAgendaOpen;
 
+            FormFields = await _formFieldRepo.GetAllAsync();
             var studios = await _studioRepo.GetAllAsync();
             StudioOptions = new SelectList(studios, nameof(Studio.Id), nameof(Studio.City));
         }

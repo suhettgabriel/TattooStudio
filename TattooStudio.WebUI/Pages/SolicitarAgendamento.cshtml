@@ -9,7 +9,16 @@
     <div class="col-lg-8">
         <h1 class="mb-4">@ViewData["Title"]</h1>
 
-        @if (!Model.FormFields.Any())
+        @if (!Model.IsAgendaOpen)
+        {
+            <div class="alert alert-info text-center">
+                <h4 class="alert-heading">Agenda Fechada!</h4>
+                <p>No momento, não estamos aceitando novas solicitações de agendamento. A agenda para o próximo semestre abrirá em breve.</p>
+                <hr>
+                <p class="mb-0">Deixe seu e-mail para ser notificado quando a agenda abrir.</p>
+            </div>
+        }
+        else if (!Model.FormFields.Any())
         {
             <div class="alert alert-warning" role="alert">
                 O formulário de agendamento está temporariamente indisponível. Por favor, tente novamente mais tarde.
