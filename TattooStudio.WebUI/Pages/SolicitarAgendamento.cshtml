@@ -1,5 +1,6 @@
 ﻿@page
 @model TattooStudio.WebUI.Pages.SolicitarAgendamentoModel
+@using TattooStudio.Core.Entities
 @using TattooStudio.WebUI.Helpers
 @{
     ViewData["Title"] = "Solicitar Agendamento";
@@ -68,15 +69,15 @@
 
                         @switch (field.FieldType)
                         {
-                            case TattooStudio.Core.Entities.FormFieldType.UploadArquivo:
+                            case FormFieldType.UploadArquivo:
                                 <input type="file" name="Input.FileAnswers[@field.Id]" class="form-control" />
                                 break;
 
-                            case TattooStudio.Core.Entities.FormFieldType.TextoLongo:
+                            case FormFieldType.TextoLongo:
                                 <textarea name="Input.Answers[@field.Id]" class="form-control" rows="4"></textarea>
                                 break;
 
-                            case TattooStudio.Core.Entities.FormFieldType.OpcaoUnica:
+                            case FormFieldType.OpcaoUnica:
                                 <select name="Input.Answers[@field.Id]" class="form-select">
                                     <option value="">Selecione...</option>
                                     @foreach (var option in field.Options?.Split(',') ?? Array.Empty<string>())
@@ -86,12 +87,61 @@
                                 </select>
                                 break;
 
-                            case TattooStudio.Core.Entities.FormFieldType.Numero:
+                            case FormFieldType.Numero:
                                 <input type="number" name="Input.Answers[@field.Id]" class="form-control" />
                                 break;
 
-                            case TattooStudio.Core.Entities.FormFieldType.Data:
+                            case FormFieldType.Data:
                                 <input type="date" name="Input.Answers[@field.Id]" class="form-control" />
+                                break;
+
+                            case FormFieldType.AvatarInterativo:
+                                <div class="avatar-container p-3 border rounded">
+                                    <div class="avatar-controls">
+                                        <p>Selecione uma ou mais partes do corpo.</p>
+                                        <button type="button" id="rotate-avatar-btn" class="btn btn-secondary btn-sm">
+                                            <i class="bi bi-arrow-repeat"></i> <span id="rotate-avatar-text">Ver Costas</span>
+                                        </button>
+                                    </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 500">
+                                        <title>Avatar Interativo Simples</title>
+                                        <g id="avatar-front">
+                                            <path class="body-part" data-name="Cabeça (Frente)" d="M125 60 A 25 30 0 1 1 175 60 A 25 30 0 1 1 125 60 Z" />
+                                            <path class="body-part" data-name="Pescoço (Frente)" d="M140 90 H 160 V 105 H 140 Z" />
+                                            <path class="body-part" data-name="Tronco (Frente)" d="M115 105 H 185 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Braço Esquerdo" d="M90 115 L 115 115 L 115 220 L 90 220 Z" />
+                                            <path class="body-part" data-name="Antebraço Esquerdo" d="M90 220 L 115 220 L 110 320 L 85 320 Z" />
+                                            <path class="body-part" data-name="Mão Esquerda" d="M80 320 H 110 V 340 H 80 Z" />
+                                            <path class="body-part" data-name="Braço Direito" d="M185 115 L 210 115 L 210 220 L 185 220 Z" />
+                                            <path class="body-part" data-name="Antebraço Direito" d="M185 220 L 210 220 L 215 320 L 190 320 Z" />
+                                            <path class="body-part" data-name="Mão Direita" d="M190 320 H 220 V 340 H 190 Z" />
+                                            <path class="body-part" data-name="Perna Esquerda" d="M115 235 H 145 V 360 H 115 Z" />
+                                            <path class="body-part" data-name="Perna Direita" d="M155 235 H 185 V 360 H 155 Z" />
+                                            <path class="body-part" data-name="Pé Esquerdo" d="M110 360 H 150 V 380 H 110 Z" />
+                                            <path class="body-part" data-name="Pé Direito" d="M150 360 H 190 V 380 H 150 Z" />
+                                        </g>
+                                        <g id="avatar-back" style="display: none;">
+                                            <path class="body-part" data-name="Cabeça (Costas)" d="M125 60 A 25 30 0 1 1 175 60 A 25 30 0 1 1 125 60 Z" />
+                                            <path class="body-part" data-name="Nuca" d="M140 90 H 160 V 105 H 140 Z" />
+                                            <path class="body-part" data-name="Costas" d="M115 105 H 185 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Braço Esquerdo (Costas)" d="M90 115 L 115 115 L 115 220 L 90 220 Z" />
+                                            <path class="body-part" data-name="Antebraço Esquerdo (Costas)" d="M90 220 L 115 220 L 110 320 L 85 320 Z" />
+                                            <path class="body-part" data-name="Mão Esquerda (Costas)" d="M80 320 H 110 V 340 H 80 Z" />
+                                            <path class="body-part" data-name="Braço Direito (Costas)" d="M185 115 L 210 115 L 210 220 L 185 220 Z" />
+                                            <path class="body-part" data-name="Antebraço Direito (Costas)" d="M185 220 L 210 220 L 215 320 L 190 320 Z" />
+                                            <path class="body-part" data-name="Mão Direita (Costas)" d="M190 320 H 220 V 340 H 190 Z" />
+                                            <path class="body-part" data-name="Perna Esquerda (Costas)" d="M115 235 H 145 V 360 H 115 Z" />
+                                            <path class="body-part" data-name="Perna Direita (Costas)" d="M155 235 H 185 V 360 H 155 Z" />
+                                            <path class="body-part" data-name="Pé Esquerdo (Costas)" d="M110 360 H 150 V 380 H 110 Z" />
+                                            <path class="body-part" data-name="Pé Direito (Costas)" d="M150 360 H 190 V 380 H 150 Z" />
+                                        </g>
+                                    </svg>
+                                    <h5 class="mt-3">Locais Selecionados:</h5>
+                                    <div id="selected-parts-list-@field.Id" class="mb-2">
+                                        <span class="badge bg-secondary">Nenhum</span>
+                                    </div>
+                                    <input type="hidden" name="Input.Answers[@field.Id]" id="hidden-input-@field.Id" />
+                                </div>
                                 break;
 
                             default:
@@ -113,12 +163,80 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            initializePhoneMask();
+            initializeAvatar();
+        });
+
+        function initializePhoneMask() {
             const phoneElement = document.querySelector('input[name="Input.ClientInfo.PhoneNumber"]');
             if (phoneElement) {
                 const phoneMask = IMask(phoneElement, {
                     mask: '(00) 00000-0000'
                 });
             }
-        });
+        }
+
+        function initializeAvatar() {
+            const avatarContainer = document.querySelector('.avatar-container');
+            if (!avatarContainer) return;
+
+            const rotateBtn = document.getElementById('rotate-avatar-btn');
+            const rotateBtnText = document.getElementById('rotate-avatar-text');
+            const avatarFront = document.getElementById('avatar-front');
+            const avatarBack = document.getElementById('avatar-back');
+            const bodyParts = avatarContainer.querySelectorAll('.body-part');
+            const displayListDiv = avatarContainer.querySelector('div[id^="selected-parts-list-"]');
+            const hiddenInput = avatarContainer.querySelector('input[id^="hidden-input-"]');
+
+            let selectedParts = [];
+
+            rotateBtn.addEventListener('click', function() {
+                const isFrontVisible = window.getComputedStyle(avatarFront).display !== 'none';
+                if (isFrontVisible) {
+                    avatarFront.style.display = 'none';
+                    avatarBack.style.display = 'block';
+                    rotateBtnText.textContent = 'Ver Frente';
+                } else {
+                    avatarFront.style.display = 'block';
+                    avatarBack.style.display = 'none';
+                    rotateBtnText.textContent = 'Ver Costas';
+                }
+            });
+
+            bodyParts.forEach(part => {
+                part.addEventListener('click', function() {
+                    const partName = this.getAttribute('data-name');
+
+                    this.classList.toggle('selected');
+
+                    if (selectedParts.includes(partName)) {
+                        selectedParts = selectedParts.filter(p => p !== partName);
+                    } else {
+                        selectedParts.push(partName);
+                    }
+
+                    updateSelectedParts();
+                });
+            });
+
+            function updateSelectedParts() {
+                if (!displayListDiv || !hiddenInput) return;
+
+                displayListDiv.innerHTML = '';
+
+                if (selectedParts.length === 0) {
+                    displayListDiv.innerHTML = '<span class="badge bg-secondary">Nenhum</span>';
+                } else {
+                    selectedParts.forEach(partName => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-primary me-1 mb-1';
+                        badge.textContent = partName;
+                        displayListDiv.appendChild(badge);
+                    });
+                }
+
+                hiddenInput.value = selectedParts.join(', ');
+            }
+        }
     </script>
 }

@@ -20,7 +20,10 @@ namespace TattooStudio.Core.Entities
         OpcaoUnica,
 
         [Display(Name = "Upload de Arquivo")]
-        UploadArquivo
+        UploadArquivo,
+        
+        [Display(Name = "Avatar Interativo")] 
+        AvatarInterativo
     }
 
     public class FormField
