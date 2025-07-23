@@ -4,7 +4,95 @@
     ViewData["Title"] = "Página Inicial";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Bem-vindo</h1>
-    <p>Sistema de Gerenciamento de Agendamentos de Tatuagem.</p>
+<div class="hero-section text-center text-white">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="display-3 fw-bold">Transforme sua Pele em Arte</h1>
+        <p class="lead my-4">Agende uma consulta para criar uma tatuagem exclusiva e cheia de significado.</p>
+        <a asp-page="/SolicitarAgendamento" class="btn btn-primary btn-lg">Iniciar Agendamento</a>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="section-title">Meu Portfólio</h2>
+            <p class="text-muted">Conheça um pouco do meu trabalho e inspire-se para sua próxima tatuagem.</p>
+        </div>
+    </div>
+
+    <div id="tattooCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            @for (int i = 0; i < Model.GalleryImages.Count; i++)
+            {
+                <button type="button" data-bs-target="#tattooCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" aria-label="Slide @(i + 1)"></button>
+            }
+        </div>
+        <div class="carousel-inner">
+            @for (int i = 0; i < Model.GalleryImages.Count; i++)
+            {
+                var image = Model.GalleryImages[i];
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <img src="@image.ImageUrl" class="d-block w-100 carousel-image" alt="@image.Description">
+                    <div class="carousel-caption d-none d-md-block">
+                        <p>@image.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#tattooCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#tattooCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="section-title">O Processo Criativo</h2>
+                <p class="text-muted">Do conceito à pele, cada etapa é pensada para você.</p>
+            </div>
+        </div>
+        <div class="row text-center g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <h4 class="card-title">1. A Ideia</h4>
+                        <p class="card-text">Tudo começa com a sua inspiração. Você preenche nosso formulário detalhado, enviando suas ideias e referências para darmos o pontapé inicial.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-pencil-ruler"></i>
+                        </div>
+                        <h4 class="card-title">2. O Desenho</h4>
+                        <p class="card-text">Com base na sua ideia, desenvolvo um desenho exclusivo. Através do nosso chat, alinhamos todos os detalhes até o design ficar perfeito.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h4 class="card-title">3. A Sessão</h4>
+                        <p class="card-text">Com o desenho aprovado e o sinal pago, agendamos sua sessão. Um momento único para eternizar sua arte com segurança e profissionalismo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

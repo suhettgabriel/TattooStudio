@@ -1,4 +1,5 @@
-﻿html {
+﻿/* Configurações Globais e Layout Sticky Footer */
+html {
 	font-size: 14px;
 }
 
@@ -23,4 +24,104 @@ main {
 
 .footer {
 	flex-shrink: 0;
+}
+
+/* Estilos da Página Inicial */
+.hero-section {
+	position: relative;
+	padding: 10rem 1.5rem;
+	background: url('/images/hero-background.png') no-repeat center center;
+	background-size: cover;
+	border-radius: 0.5rem;
+	margin-top: 2rem;
+}
+
+.hero-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	border-radius: 0.5rem;
+}
+
+.hero-content {
+	position: relative;
+	z-index: 1;
+}
+
+.section-title {
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+}
+
+/* Estilos do Carrossel Multi-Item */
+.carousel-inner {
+	padding: 1rem;
+}
+
+.carousel-item {
+	transition: transform .6s ease-in-out;
+}
+
+.carousel-image {
+	width: 100%;
+	height: 400px;
+	object-fit: cover;
+	object-position: center;
+	border-radius: 0.375rem;
+}
+
+.carousel-caption {
+	background-color: rgba(0, 0, 0, 0.5);
+	border-radius: 0.5rem;
+	padding: 0.5rem 1rem;
+}
+
+/* Lógica para mostrar múltiplos itens em telas maiores */
+@media (min-width: 768px) {
+	.carousel-item {
+		margin-right: 0;
+		flex: 0 0 calc(100% / 3); /* Exibe 3 itens */
+		display: block;
+	}
+
+	.carousel-inner {
+		display: flex;
+	}
+}
+
+/* Garante que apenas o item ativo seja visível em telas pequenas */
+.carousel-item-next,
+.carousel-item-prev,
+.carousel-item.active {
+	display: block;
+}
+
+/* Oculta itens extras em telas pequenas */
+@media (max-width: 767px) {
+	.carousel-inner .carousel-item-next,
+	.carousel-inner .carousel-item-prev {
+		display: none;
+	}
+
+	.carousel-inner .carousel-item-end.active,
+	.carousel-inner .carousel-item-start.active {
+		transform: translateX(0);
+	}
+}
+
+
+/* Estilos da Seção de Processo */
+.feature-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 4rem;
+	height: 4rem;
+	border-radius: 50%;
+	font-size: 2rem;
+	background-color: var(--bs-primary);
+	color: white;
 }

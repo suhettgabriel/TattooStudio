@@ -24,12 +24,11 @@
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/Requests/Index">Solicitações</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-page="/Admin/Dashboard/Index">Dashboard</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Admin/Requests/Index">Solicitações</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-page="/Admin/Clients/Index">Clientes</a>
                         </li>
@@ -51,14 +50,14 @@
         </nav>
     </header>
 
-    <div class="container flex-grow-1">
+    <div class="container-fluid flex-grow-1">
         <main role="main" class="pb-3 pt-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-auto py-3">
-        <div class="container">
+    <footer class="footer bg-primary text-white mt-auto py-3">
+        <div class="container text-center">
             &copy; @DateTime.Now.Year - Tattoo Studio Manager
         </div>
     </footer>
@@ -69,7 +68,39 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/imask"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/bs5-lightbox@1.8.3/dist/index.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Script para carrossel com múltiplos itens
+        const multipleItemCarousel = document.querySelector('#tattooCarousel');
+        if (window.matchMedia("(min-width:768px)").matches && multipleItemCarousel) {
+            const carousel = new bootstrap.Carousel(multipleItemCarousel, {
+                interval: false,
+                wrap: false
+            });
+
+            var carouselWidth = multipleItemCarousel.querySelector('.carousel-inner').scrollWidth;
+            var cardWidth = multipleItemCarousel.querySelector('.carousel-item').offsetWidth;
+            var scrollPosition = 0;
+
+            multipleItemCarousel.querySelector('.carousel-control-next').addEventListener('click', function () {
+                if (scrollPosition < (carouselWidth - (cardWidth * 3))) {
+                    scrollPosition += cardWidth;
+                    multipleItemCarousel.querySelector('.carousel-inner').scroll({ left: scrollPosition, behavior: 'smooth' });
+                }
+            });
+
+            multipleItemCarousel.querySelector('.carousel-control-prev').addEventListener('click', function () {
+                if (scrollPosition > 0) {
+                    scrollPosition -= cardWidth;
+                    multipleItemCarousel.querySelector('.carousel-inner').scroll({ left: scrollPosition, behavior: 'smooth' });
+                }
+            });
+        } else if (multipleItemCarousel) {
+            new bootstrap.Carousel(multipleItemCarousel);
+        }
+    </script>
 
     @if (TempData["SuccessMessage"] != null)
     {
