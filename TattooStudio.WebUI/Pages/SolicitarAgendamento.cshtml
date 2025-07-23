@@ -1,5 +1,6 @@
 ﻿@page
 @model TattooStudio.WebUI.Pages.SolicitarAgendamentoModel
+@using TattooStudio.WebUI.Helpers
 @{
     ViewData["Title"] = "Solicitar Agendamento";
 }
@@ -7,78 +8,108 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <h1 class="mb-4">@ViewData["Title"]</h1>
-        <p class="lead">Preencha o formulário abaixo com o máximo de detalhes possível.</p>
-        <hr />
 
-        <form method="post" enctype="multipart/form-data" class="mt-4">
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-            <h4>Seus Dados</h4>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ClientInfo.FullName" class="form-label">Nome Completo</label>
-                    <input asp-for="ClientInfo.FullName" class="form-control" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ClientInfo.Email" class="form-label">E-mail</label>
-                    <input asp-for="ClientInfo.Email" class="form-control" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ClientInfo.PhoneNumber" class="form-label">WhatsApp</label>
-                    <input asp-for="ClientInfo.PhoneNumber" class="form-control" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ClientInfo.InstagramHandle" class="form-label">Instagram (opcional)</label>
-                    <input asp-for="ClientInfo.InstagramHandle" class="form-control" />
-                </div>
+        @if (!Model.FormFields.Any())
+        {
+            <div class="alert alert-warning" role="alert">
+                O formulário de agendamento está temporariamente indisponível. Por favor, tente novamente mais tarde.
             </div>
+        }
+        else
+        {
+            <p class="lead">Preencha o formulário abaixo com o máximo de detalhes possível.</p>
+            <hr />
 
-            <hr class="my-4" />
+            <form method="post" enctype="multipart/form-data" class="mt-4">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <h4>Sobre a Tatuagem</h4>
-            @foreach (var field in Model.FormFields)
-            {
-                <div class="mb-3">
-                    <label class="form-label">@field.Label @(field.IsRequired ? "*" : "")</label>
-
-                    @switch (field.FieldType)
-                    {
-                        case TattooStudio.Core.Entities.FormFieldType.UploadArquivo:
-                            <input type="file" name="FileAnswers[@field.Id]" class="form-control" />
-                            break;
-
-                        case TattooStudio.Core.Entities.FormFieldType.TextoLongo:
-                            <textarea name="Answers[@field.Id]" class="form-control" rows="4"></textarea>
-                            break;
-
-                        case TattooStudio.Core.Entities.FormFieldType.OpcaoUnica:
-                            <select name="Answers[@field.Id]" class="form-select">
-                                <option value="">Selecione...</option>
-                                @foreach (var option in field.Options?.Split(',') ?? Array.Empty<string>())
-                                {
-                                    <option value="@option.Trim()">@option.Trim()</option>
-                                }
-                            </select>
-                            break;
-
-                        case TattooStudio.Core.Entities.FormFieldType.Numero:
-                            <input type="number" name="Answers[@field.Id]" class="form-control" />
-                            break;
-
-                        case TattooStudio.Core.Entities.FormFieldType.Data:
-                            <input type="date" name="Answers[@field.Id]" class="form-control" />
-                            break;
-
-                        default: // TextoCurto
-                                 <input type="text" name="Answers[@field.Id]" class="form-control" />
-                            break;
-                    }
+                <h4>Seus Dados</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ClientInfo.FullName" class="form-label"></label>
+                        <input asp-for="Input.ClientInfo.FullName" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ClientInfo.Email" class="form-label"></label>
+                        <input asp-for="Input.ClientInfo.Email" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ClientInfo.PhoneNumber" class="form-label"></label>
+                        <input asp-for="Input.ClientInfo.PhoneNumber" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ClientInfo.InstagramHandle" class="form-label"></label>
+                        <input asp-for="Input.ClientInfo.InstagramHandle" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ClientInfo.StudioId" class="form-label"></label>
+                        <select asp-for="Input.ClientInfo.StudioId" asp-items="Model.StudioOptions" class="form-select">
+                            <option value="">Selecione um local</option>
+                        </select>
+                    </div>
                 </div>
-            }
 
-            <div class="d-grid gap-2 mt-4">
-                <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitação</button>
-            </div>
-        </form>
+                <hr class="my-4" />
+
+                <h4>Sobre a Tatuagem</h4>
+                @foreach (var field in Model.FormFields)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">@field.Label @(field.IsRequired ? "*" : "")</label>
+
+                        @switch (field.FieldType)
+                        {
+                            case TattooStudio.Core.Entities.FormFieldType.UploadArquivo:
+                                <input type="file" name="Input.FileAnswers[@field.Id]" class="form-control" />
+                                break;
+
+                            case TattooStudio.Core.Entities.FormFieldType.TextoLongo:
+                                <textarea name="Input.Answers[@field.Id]" class="form-control" rows="4"></textarea>
+                                break;
+
+                            case TattooStudio.Core.Entities.FormFieldType.OpcaoUnica:
+                                <select name="Input.Answers[@field.Id]" class="form-select">
+                                    <option value="">Selecione...</option>
+                                    @foreach (var option in field.Options?.Split(',') ?? Array.Empty<string>())
+                                    {
+                                        <option value="@option.Trim()">@option.Trim()</option>
+                                    }
+                                </select>
+                                break;
+
+                            case TattooStudio.Core.Entities.FormFieldType.Numero:
+                                <input type="number" name="Input.Answers[@field.Id]" class="form-control" />
+                                break;
+
+                            case TattooStudio.Core.Entities.FormFieldType.Data:
+                                <input type="date" name="Input.Answers[@field.Id]" class="form-control" />
+                                break;
+
+                            default:
+                                <input type="text" name="Input.Answers[@field.Id]" class="form-control" />
+                                break;
+                        }
+                    </div>
+                }
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitação</button>
+                </div>
+            </form>
+        }
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const phoneElement = document.querySelector('input[name="Input.ClientInfo.PhoneNumber"]');
+            if (phoneElement) {
+                const phoneMask = IMask(phoneElement, {
+                    mask: '(00) 00000-0000'
+                });
+            }
+        });
+    </script>
+}

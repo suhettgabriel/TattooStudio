@@ -1,0 +1,237 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Admin.Requests.IndexModel
+@Html.AntiForgeryToken()
+@{
+    ViewData["Title"] = "Gestão de Solicitações";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+<form method="get" class="mb-4 p-3 border rounded">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-4 col-lg-3">
+            <label asp-for="SearchTerm" class="form-label">Buscar por Nome ou E-mail</label>
+            <input asp-for="SearchTerm" type="search" class="form-control" />
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <label asp-for="StudioId" class="form-label">Filtrar por Estúdio</label>
+            <select asp-for="StudioId" asp-items="Model.StudioOptions" class="form-select">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <label asp-for="StartDate" class="form-label"></label>
+            <input asp-for="StartDate" class="form-control" />
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <label asp-for="EndDate" class="form-label"></label>
+            <input asp-for="EndDate" class="form-control" />
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <label class="form-label">Exibir Colunas</label>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Selecionar Status
+                </button>
+                <ul class="dropdown-menu p-2" style="min-width: 250px;">
+                    @foreach (var status in Model.StatusColumns)
+                    {
+                        var isChecked = Model.SelectedStatuses?.Contains(status) ?? false;
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="SelectedStatuses" value="@status" id="status-@status.Replace(" ", "")" checked="@isChecked">
+                                <label class="form-check-label" for="status-@status.Replace(" ", "")">
+                                    @status
+                                </label>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-1 d-grid">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12 text-end">
+            <a asp-page="./Index" class="btn btn-sm btn-outline-secondary">Limpar Filtros</a>
+        </div>
+    </div>
+</form>
+
+<div class="kanban-board-container">
+    <div class="kanban-board">
+        @foreach (var status in Model.RequestsByStatus.Keys)
+        {
+            var statusClass = "status-" + status.Replace(" ", "-").ToLower();
+            var requestsInColumn = Model.RequestsByStatus[status];
+            <div class="kanban-column">
+                <h5 class="kanban-column-title">@status (@requestsInColumn.Count)</h5>
+                <div class="kanban-dropzone" data-status="@status">
+                    @foreach (var request in requestsInColumn)
+                    {
+                        <div class="kanban-card @statusClass" data-id="@request.Id">
+                            <div class="card-body">
+                                <p class="card-title fw-bold">@request.User?.FullName</p>
+                                <p class="card-subtitle mb-2 text-muted">@request.SubmissionDate.ToString("dd/MM/yyyy 'às' HH:mm")</p>
+                                <a asp-page="./Details" asp-route-id="@request.Id" class="btn btn-sm btn-details-custom">Ver Detalhes</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .kanban-board-container {
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .kanban-board {
+            display: flex;
+            gap: 1rem;
+            min-width: fit-content;
+        }
+
+        .kanban-column {
+            flex: 1 0 300px;
+            max-width: 350px;
+            background-color: var(--bs-tertiary-bg);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .kanban-column-title {
+            padding: 0.5rem;
+            font-weight: 600;
+        }
+
+        .kanban-dropzone {
+            min-height: 200px;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .kanban-card {
+            border: 1px solid var(--bs-border-color);
+            border-left-width: 5px;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: move;
+        }
+
+            .kanban-card:last-child {
+                margin-bottom: 0;
+            }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #6c757d;
+        }
+
+        .status-nova-solicitação {
+            border-left-color: #0d6efd;
+            background-color: #cfe2ff;
+        }
+
+        .status-em-análise {
+            border-left-color: #6f42c1;
+            background-color: #e5d9f8;
+        }
+
+        .status-orçamento-enviado {
+            border-left-color: #0dcaf0;
+            background-color: #cff4fc;
+        }
+
+        .status-aguardando-sinal {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+        }
+
+        .status-agendado {
+            border-left-color: #198754;
+            background-color: #d1e7dd;
+        }
+
+        .status-lista-de-espera {
+            border-left-color: #fd7e14;
+            background-color: #ffe5d0;
+        }
+
+        .status-recusado {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        .btn-details-custom {
+            background-color: #212529;
+            color: #ffffff;
+            border-color: #212529;
+        }
+
+            .btn-details-custom:hover, .btn-details-custom:focus {
+                background-color: #424649;
+                color: #ffffff;
+                border-color: #424649;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropzones = document.querySelectorAll('.kanban-dropzone');
+
+            dropzones.forEach(zone => {
+                new Sortable(zone, {
+                    group: 'kanban',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onAdd: function (evt) {
+                        const card = evt.item;
+                        const requestId = card.getAttribute('data-id');
+                        const newStatus = evt.to.getAttribute('data-status');
+                        updateRequestStatus(requestId, newStatus);
+                    }
+                });
+            });
+
+            function updateRequestStatus(requestId, newStatus) {
+                const data = {
+                    requestId: parseInt(requestId),
+                    newStatus: newStatus
+                };
+
+                fetch('?handler=UpdateStatus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        toastr.success('Status da solicitação atualizado!');
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        toastr.error('Falha ao atualizar o status.');
+                    }
+                })
+                .catch(error => {
+                    toastr.error('Erro de conexão ao atualizar o status.');
+                });
+            }
+        });
+    </script>
+}

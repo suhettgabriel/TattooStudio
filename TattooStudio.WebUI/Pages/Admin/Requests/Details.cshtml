@@ -1,0 +1,74 @@
+﻿@page "{id:int}"
+@model TattooStudio.WebUI.Pages.Admin.Requests.DetailsModel
+@{
+    ViewData["Title"] = "Detalhes da Solicitação";
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+@if (Model.TattooRequest != null)
+{
+    <div class="row">
+        <div class="col-lg-7">
+            <h4>Respostas do Formulário</h4>
+            <hr />
+            <dl class="row">
+                @foreach (var answer in Model.TattooRequest.Answers.OrderBy(a => a.FormField?.Order))
+                {
+                    <dt class="col-sm-4">@answer.FormField?.Label</dt>
+                    <dd class="col-sm-8">
+                        @if (answer.FormField?.FieldType == TattooStudio.Core.Entities.FormFieldType.UploadArquivo)
+                        {
+                            <a href="@answer.Value" target="_blank">
+                                <img src="@answer.Value" class="img-fluid rounded" style="max-height: 200px;" alt="Imagem de Referência" />
+                            </a>
+                        }
+                        else
+                        {
+                            @answer.Value
+                        }
+                    </dd>
+                    <hr class="my-2 d-sm-none" />
+                }
+            </dl>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Informações do Cliente</h4>
+                </div>
+                <div class="card-body">
+                    <dl>
+                        <dt>Nome</dt>
+                        <dd>@Model.TattooRequest.User?.FullName</dd>
+
+                        <dt>E-mail</dt>
+                        <dd>@Model.TattooRequest.User?.Email</dd>
+
+                        <dt>WhatsApp</dt>
+                        <dd>@Model.TattooRequest.User?.PhoneNumber</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.TattooRequest.User?.InstagramHandle))
+                        {
+                            <dt>Instagram</dt>
+                            <dd>@Model.TattooRequest.User.InstagramHandle</dd>
+                        }
+                    </dl>
+                </div>
+                <div class="card-footer text-muted">
+                    Solicitação recebida em: @Model.TattooRequest.SubmissionDate.ToString("dd/MM/yyyy 'às' HH:mm")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-page="./Index" class="btn btn-secondary">Voltar para o Quadro</a>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        Solicitação não encontrada.
+    </div>
+}
