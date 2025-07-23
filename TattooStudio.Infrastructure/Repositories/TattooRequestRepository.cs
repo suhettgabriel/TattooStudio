@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
+using TattooStudio.Core.Enums;
 using TattooStudio.Infrastructure.Data;
 
 namespace TattooStudio.Infrastructure.Repositories
@@ -27,8 +28,8 @@ namespace TattooStudio.Infrastructure.Repositories
         public async Task<IList<TattooRequest>> GetAllRequestsAsync(string? searchTerm, int? studioId, DateTime? startDate, DateTime? endDate)
         {
             var query = _context.TattooRequests
-                                .Include(r => r.User)
-                                .AsQueryable();
+                .Include(r => r.User)
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -54,7 +55,19 @@ namespace TattooStudio.Infrastructure.Repositories
             return await query.OrderByDescending(r => r.SubmissionDate).ToListAsync();
         }
 
-        public async Task UpdateRequestStatusAsync(int requestId, string newStatus)
+        public async Task<TattooRequest?> GetRequestByIdAsync(int requestId)
+        {
+            return await _context.TattooRequests
+                .Include(r => r.User)
+                .Include(r => r.Quotes)
+                .Include(r => r.ChatMessages)
+                .Include(r => r.Appointment)
+                .Include(r => r.Answers)
+                    .ThenInclude(a => a.FormField)
+                .FirstOrDefaultAsync(r => r.Id == requestId);
+        }
+
+        public async Task UpdateStatusAsync(int requestId, RequestStatus newStatus)
         {
             var request = await _context.TattooRequests.FindAsync(requestId);
             if (request != null)
@@ -64,15 +77,20 @@ namespace TattooStudio.Infrastructure.Repositories
             }
         }
 
-        public async Task<TattooRequest?> GetRequestByIdAsync(int requestId)
+        public async Task UpdateAsync(TattooRequest tattooRequest)
         {
-            return await _context.TattooRequests
-                                 .Include(r => r.User)
-                                 .Include(r => r.Quotes)
-                                 .Include(r => r.ChatMessages)
-                                 .Include(r => r.Answers)
-                                     .ThenInclude(a => a.FormField)
-                                 .FirstOrDefaultAsync(r => r.Id == requestId);
+            _context.TattooRequests.Update(tattooRequest);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var request = await _context.TattooRequests.FindAsync(id);
+            if (request != null)
+            {
+                _context.TattooRequests.Remove(request);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

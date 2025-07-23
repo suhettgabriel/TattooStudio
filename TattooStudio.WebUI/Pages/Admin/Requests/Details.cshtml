@@ -1,5 +1,8 @@
 ﻿@page "{id:int}"
 @model TattooStudio.WebUI.Pages.Admin.Requests.DetailsModel
+@using TattooStudio.Core.Entities
+@using TattooStudio.Core.Enums
+@using TattooStudio.WebUI.Helpers
 @Html.AntiForgeryToken()
 @{
     ViewData["Title"] = "Detalhes da Solicitação";
@@ -7,87 +10,101 @@
 
 @if (Model.TattooRequest != null)
 {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>@ViewData["Title"]</h1>
-        <a asp-page="./Index" class="btn btn-secondary">Voltar para o Quadro</a>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+        <div>
+            @if (Model.TattooRequest.Status == RequestStatus.NovaSolicitacao)
+            {
+                <form method="post" asp-page-handler="MarkAsAnalyzing" asp-route-requestId="@Model.TattooRequest.Id" class="d-inline">
+                    <button type="submit" class="btn btn-primary btn-icon-split">
+                        <span class="icon text-white-50"><i class="bi bi-eye"></i></span>
+                        <span class="text">Marcar como "Em Análise"</span>
+                    </button>
+                </form>
+            }
+            @if (!Model.HasExistingAppointment && (Model.TattooRequest.Status == RequestStatus.AguardandoSinal || Model.TattooRequest.Status == RequestStatus.ListaDeEspera || Model.TattooRequest.Status == RequestStatus.OrcamentoEnviado))
+            {
+                <button id="scheduleButton" class="btn btn-success btn-icon-split">
+                    <span class="icon text-white-50"><i class="bi bi-calendar-check"></i></span>
+                    <span class="text">Agendar Sessão</span>
+                </button>
+            }
+            @if (Model.HasExistingAppointment)
+            {
+                <a href="/Admin/Calendar" class="btn btn-info btn-icon-split">
+                    <span class="icon text-white-50"><i class="bi bi-calendar-alt"></i></span>
+                    <span class="text">Ver no Calendário</span>
+                </a>
+            }
+            <a asp-page="./Index" class="btn btn-secondary">Voltar ao Quadro</a>
+        </div>
     </div>
 
-    <ul class="nav nav-tabs" id="requestDetailsTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="answers-tab" data-bs-toggle="tab" data-bs-target="#answers-tab-pane" type="button" role="tab" aria-controls="answers-tab-pane" aria-selected="true">Respostas do Formulário</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="client-info-tab" data-bs-toggle="tab" data-bs-target="#client-info-tab-pane" type="button" role="tab" aria-controls="client-info-tab-pane" aria-selected="false">Informações do Cliente</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="quote-tab" data-bs-toggle="tab" data-bs-target="#quote-tab-pane" type="button" role="tab" aria-controls="quote-tab-pane" aria-selected="false">Orçamento</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button" role="tab" aria-controls="chat-tab-pane" aria-selected="false">Chat</button>
-        </li>
-    </ul>
-
-    <div class="tab-content border border-top-0 p-3" id="requestDetailsTabContent">
-
-        <div class="tab-pane fade show active" id="answers-tab-pane" role="tabpanel" aria-labelledby="answers-tab" tabindex="0">
-            <h4 class="mb-3">Respostas do Formulário</h4>
-            <dl class="row">
-                @foreach (var answer in Model.TattooRequest.Answers.OrderBy(a => a.FormField?.Order))
-                {
-                    <dt class="col-sm-4 col-lg-3">@answer.FormField?.Label</dt>
-                    <dd class="col-sm-8 col-lg-9">
-                        @if (answer.FormField?.FieldType == TattooStudio.Core.Entities.FormFieldType.UploadArquivo)
-                        {
-                            <a href="@answer.Value" target="_blank">
-                                <img src="@answer.Value" class="img-fluid rounded" style="max-height: 200px; max-width: 200px; object-fit: cover;" alt="Imagem de Referência" />
-                            </a>
-                        }
-                        else
-                        {
-                            @answer.Value
-                        }
-                    </dd>
-                    <hr class="my-2 d-sm-none" />
-                }
-            </dl>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Solicitação de @Model.TattooRequest.User?.FullName</h6>
+            <span class="badge p-2 text-white" style="font-size: 1rem; background-color: @(EnumHelpers.GetStatusColor(Model.TattooRequest.Status));">
+                @EnumHelpers.GetDisplayName(Model.TattooRequest.Status)
+            </span>
         </div>
-
-        <div class="tab-pane fade" id="client-info-tab-pane" role="tabpanel" aria-labelledby="client-info-tab" tabindex="0">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Informações do Cliente</h4>
-                </div>
-                <div class="card-body">
-                    <dl>
-                        <dt>Nome</dt>
-                        <dd>@Model.TattooRequest.User?.FullName</dd>
-                        <dt>E-mail</dt>
-                        <dd>@Model.TattooRequest.User?.Email</dd>
-                        <dt>WhatsApp</dt>
-                        <dd>@Model.TattooRequest.User?.PhoneNumber</dd>
-                        @if (!string.IsNullOrEmpty(Model.TattooRequest.User?.InstagramHandle))
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="requestDetailsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="answers-tab" data-bs-toggle="tab" data-bs-target="#answers-tab-pane" type="button" role="tab" aria-controls="answers-tab-pane" aria-selected="true">Perguntas e Respostas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="client-info-tab" data-bs-toggle="tab" data-bs-target="#client-info-tab-pane" type="button" role="tab" aria-controls="client-info-tab-pane" aria-selected="false">Detalhes da Solicitação</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="quote-tab" data-bs-toggle="tab" data-bs-target="#quote-tab-pane" type="button" role="tab" aria-controls="quote-tab-pane" aria-selected="false">Orçamento</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button" role="tab" aria-controls="chat-tab-pane" aria-selected="false">Chat</button>
+                </li>
+            </ul>
+            <div class="tab-content border border-top-0 p-3" id="requestDetailsTabContent">
+                <div class="tab-pane fade show active" id="answers-tab-pane" role="tabpanel" aria-labelledby="answers-tab" tabindex="0">
+                    <dl class="row mt-3">
+                        @foreach (var answer in Model.TattooRequest.Answers.OrderBy(a => a.FormField?.Order))
                         {
-                            <dt>Instagram</dt>
-                            <dd>@Model.TattooRequest.User.InstagramHandle</dd>
+                            <dt class="col-sm-4 col-lg-3">@answer.FormField?.Label</dt>
+                            <dd class="col-sm-8 col-lg-9 mb-3">
+                                @if (answer.FormField?.FieldType == FormFieldType.UploadArquivo && !string.IsNullOrEmpty(answer.Value))
+                                {
+                                    <a href="~/@answer.Value" data-bs-toggle="tooltip" title="Clique para ampliar" target="_blank">
+                                        <img src="~/@answer.Value" class="img-fluid img-thumbnail" style="max-height: 200px; object-fit: cover;" alt="Imagem de Referência" />
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-break">@answer.Value</span>
+                                }
+                            </dd>
                         }
                     </dl>
                 </div>
-                <div class="card-footer text-muted">
-                    Solicitação recebida em: @Model.TattooRequest.SubmissionDate.ToString("dd/MM/yyyy 'às' HH:mm")
+                <div class="tab-pane fade" id="client-info-tab-pane" role="tabpanel" aria-labelledby="client-info-tab" tabindex="0">
+                    <dl class="row mt-3">
+                        <dt class="col-sm-4 col-lg-3">Nome do Cliente</dt>
+                        <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.FullName</dd>
+                        <dt class="col-sm-4 col-lg-3">E-mail</dt>
+                        <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.Email</dd>
+                        <dt class="col-sm-4 col-lg-3">WhatsApp</dt>
+                        <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.PhoneNumber</dd>
+                        @if (!string.IsNullOrEmpty(Model.TattooRequest.User?.InstagramHandle))
+                        {
+                            <dt class="col-sm-4 col-lg-3">Instagram</dt>
+                            <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User.InstagramHandle</dd>
+                        }
+                        <dt class="col-sm-4 col-lg-3">Data da Solicitação</dt>
+                        <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.SubmissionDate.ToString("dd/MM/yyyy 'às' HH:mm")</dd>
+                    </dl>
                 </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="quote-tab-pane" role="tabpanel" aria-labelledby="quote-tab" tabindex="0">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Gerenciar Orçamento</h4>
-                </div>
-                <div class="card-body">
+                <div class="tab-pane fade" id="quote-tab-pane" role="tabpanel" aria-labelledby="quote-tab" tabindex="0">
                     @if (Model.TattooRequest.Quotes.Any())
                     {
                         var quote = Model.TattooRequest.Quotes.OrderByDescending(q => q.CreatedAt).First();
-                        <dl class="row">
+                        <dl class="row mt-3">
                             <dt class="col-sm-5">Valor Total</dt>
                             <dd class="col-sm-7">@quote.Amount.ToString("C")</dd>
                             <dt class="col-sm-5">Valor do Sinal</dt>
@@ -105,7 +122,7 @@
                     }
                     else
                     {
-                        <form method="post" asp-page-handler="CreateQuote" asp-route-requestId="@Model.TattooRequest.Id">
+                        <form method="post" asp-page-handler="CreateQuote" asp-route-requestId="@Model.TattooRequest.Id" class="mt-3">
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -124,7 +141,7 @@
                                 </div>
                                 <div class="col-md-12">
                                     <label asp-for="NewQuote.ExpiryDate" class="form-label"></label>
-                                    <input asp-for="NewQuote.ExpiryDate" class="form-control" />
+                                    <input asp-for="NewQuote.ExpiryDate" type="date" class="form-control" />
                                     <span asp-validation-for="NewQuote.ExpiryDate" class="text-danger"></span>
                                 </div>
                                 <div class="col-12 d-grid">
@@ -134,90 +151,132 @@
                         </form>
                     }
                 </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="chat-tab-pane" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="mb-3">Histórico de Conversa</h4>
-                    <div id="chat-history-container" class="chat-history" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--bs-border-color); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                        @foreach (var message in Model.TattooRequest.ChatMessages.OrderBy(m => m.SentAt))
-                        {
-                            var alignment = message.Sender == "Admin" ? "d-flex justify-content-end" : "d-flex justify-content-start";
-                            <div class="mb-3 @alignment">
-                                <div class="p-3 rounded" style="max-width: 70%; @(message.Sender == "Admin" ? "background-color: var(--bs-primary-bg-subtle);" : "background-color: var(--bs-secondary-bg);")">
-                                    <p class="mb-1">@message.Message</p>
-                                    <small class="text-muted d-block text-end">@message.SentAt.ToString("dd/MM/yy HH:mm")</small>
-                                </div>
+                <div class="tab-pane fade" id="chat-tab-pane" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h4 class="mb-3">Histórico de Conversa</h4>
+                            <div id="chat-history-container" class="chat-history mb-4 p-3 border rounded" style="max-height: 400px; overflow-y: auto;">
+                                @foreach (var message in Model.TattooRequest.ChatMessages.OrderBy(m => m.SentAt))
+                                {
+                                    var alignment = message.Sender == "Admin" ? "d-flex justify-content-end" : "d-flex justify-content-start";
+                                    <div class="mb-3 @alignment">
+                                        <div class="p-3 rounded" style="max-width: 70%; @(message.Sender == "Admin" ? "background-color: #cfe2ff;" : "background-color: #f8f9fa;")">
+                                            <p class="mb-1">@message.Message</p>
+                                            <small class="text-muted d-block text-end">@message.SentAt.ToString("dd/MM/yy HH:mm")</small>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                        }
-                    </div>
-
-                    <hr />
-
-                    <h5 class="mt-4">Enviar Nova Mensagem</h5>
-                    <div>
-                        <div class="mb-3">
-                            <textarea id="newMessageText" class="form-control" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                            <hr />
+                            <h5 class="mt-4">Enviar Nova Mensagem</h5>
+                            <div>
+                                <div class="mb-3">
+                                    <textarea id="newMessageText" class="form-control" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                                </div>
+                                <button id="sendMessageBtn" type="button" class="btn btn-primary">Enviar Mensagem</button>
+                            </div>
                         </div>
-                        <button id="sendMessageBtn" type="button" class="btn btn-primary">Enviar Mensagem</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <form id="scheduleForm" method="post" asp-page-handler="Schedule">
+        <input type="hidden" name="tattooRequestId" value="@Model.TattooRequest.Id" />
+        <input type="hidden" id="scheduleStart" name="scheduleStart" />
+        <input type="hidden" id="durationHours" name="durationHours" />
+    </form>
 }
 else
 {
-    <div class="alert alert-warning">
-        Solicitação não encontrada.
-    </div>
+    <div class="alert alert-warning">Solicitação não encontrada.</div>
 }
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            initializeScheduling();
+            initializeChat();
+        });
+
+        function initializeScheduling() {
+            const scheduleButton = document.getElementById('scheduleButton');
+            if (!scheduleButton) return;
+
+            scheduleButton.addEventListener('click', function () {
+                Swal.fire({
+                    title: 'Agendar Nova Sessão',
+                    html: `
+                        <div class="form-group text-left mb-3">
+                            <label for="swal-schedule-start" class="mb-1">Data e Hora de Início</label>
+                            <input id="swal-schedule-start" type="datetime-local" class="form-control">
+                        </div>
+                        <div class="form-group text-left">
+                            <label for="swal-duration" class="mb-1">Duração Estimada (em horas)</label>
+                            <input id="swal-duration" type="number" value="2" min="1" class="form-control">
+                        </div>`,
+                    confirmButtonText: 'Confirmar Agendamento',
+                    confirmButtonColor: '#198754',
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        const start = document.getElementById('swal-schedule-start').value;
+                        const duration = document.getElementById('swal-duration').value;
+                        if (!start) {
+                            Swal.showValidationMessage('Por favor, informe a data e hora de início.');
+                            return false;
+                        }
+                        return { start: start, duration: duration };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('scheduleStart').value = result.value.start;
+                        document.getElementById('durationHours').value = result.value.duration;
+                        document.getElementById('scheduleForm').submit();
+                    }
+                });
+            });
+        }
+
+        function initializeChat() {
             const sendMessageBtn = document.getElementById('sendMessageBtn');
+            if (!sendMessageBtn) return;
+
             const newMessageText = document.getElementById('newMessageText');
             const chatHistoryContainer = document.getElementById('chat-history-container');
             const requestId = @(Model.TattooRequest?.Id ?? 0);
 
-            if (sendMessageBtn) {
-                sendMessageBtn.addEventListener('click', function () {
-                    const messageContent = newMessageText.value;
-                    if (!messageContent.trim()) {
-                        toastr.warning('A mensagem não pode estar vazia.');
-                        return;
-                    }
+            sendMessageBtn.addEventListener('click', function () {
+                const messageContent = newMessageText.value;
+                if (!messageContent.trim()) {
+                    toastr.warning('A mensagem não pode estar vazia.');
+                    return;
+                }
 
-                    const data = { message: messageContent };
+                const data = { message: messageContent };
 
-                    fetch(`?handler=SendMessage&requestId=${requestId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Falha na resposta da rede.');
-                        }
-                        return response.json();
-                    })
-                    .then(result => {
-                        appendMessageToHistory(result);
-                        newMessageText.value = '';
-                        toastr.success('Mensagem enviada com sucesso!');
-                    })
-                    .catch(error => {
-                        toastr.error('Ocorreu um erro ao enviar a mensagem.');
-                    });
-                });
-            }
+                fetch(`?handler=SendMessage&requestId=${requestId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) { throw new Error('Falha na resposta da rede.'); }
+                    return response.json();
+                })
+                .then(result => {
+                    appendMessageToHistory(result);
+                    newMessageText.value = '';
+                    toastr.success('Mensagem enviada com sucesso!');
+                })
+                .catch(error => toastr.error('Ocorreu um erro ao enviar a mensagem.'));
+            });
 
             function appendMessageToHistory(msgData) {
                 const messageWrapper = document.createElement('div');
@@ -226,7 +285,7 @@ else
                 const messageBubble = document.createElement('div');
                 messageBubble.className = 'p-3 rounded';
                 messageBubble.style.maxWidth = '70%';
-                messageBubble.style.backgroundColor = 'var(--bs-primary-bg-subtle)';
+                messageBubble.style.backgroundColor = '#cfe2ff';
 
                 const messageText = document.createElement('p');
                 messageText.className = 'mb-1';
@@ -243,6 +302,6 @@ else
                 chatHistoryContainer.appendChild(messageWrapper);
                 chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
             }
-        });
+        }
     </script>
 }

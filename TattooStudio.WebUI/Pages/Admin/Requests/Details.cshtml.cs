@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
+using TattooStudio.Core.Enums;
 using TattooStudio.Infrastructure.Data;
 
 namespace TattooStudio.WebUI.Pages.Admin.Requests
@@ -9,53 +11,70 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
     public class DetailsModel : PageModel
     {
         private readonly ITattooRequestRepository _requestRepo;
+        private readonly IAppointmentRepository _appointmentRepo;
         private readonly AppDbContext _context;
 
-        public DetailsModel(ITattooRequestRepository requestRepo, AppDbContext context)
+        public DetailsModel(ITattooRequestRepository requestRepo, IAppointmentRepository appointmentRepo, AppDbContext context)
         {
             _requestRepo = requestRepo;
+            _appointmentRepo = appointmentRepo;
             _context = context;
         }
 
         [BindProperty]
         public Quote NewQuote { get; set; } = new();
 
-        [BindProperty]
-        public string NewMessage { get; set; }
-
         public TattooRequest TattooRequest { get; set; }
+        public bool HasExistingAppointment { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
+            if (id == null) return NotFound();
+            return await LoadPageDataAsync(id.Value);
+        }
+
+        public async Task<IActionResult> OnPostScheduleAsync(int tattooRequestId, DateTime scheduleStart, int durationHours)
+        {
+            var tattooRequest = await _requestRepo.GetRequestByIdAsync(tattooRequestId);
+            if (tattooRequest == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Solicitação não encontrada.";
+                return RedirectToPage("./Index");
             }
 
-            var request = await _requestRepo.GetRequestByIdAsync(id.Value);
-            if (request == null)
+            if (await _appointmentRepo.ExistsByTattooRequestIdAsync(tattooRequestId))
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Esta solicitação já possui um agendamento.";
+                return RedirectToPage(new { id = tattooRequestId });
             }
 
-            TattooRequest = request;
-            NewQuote.ExpiryDate = DateTime.Today.AddDays(7);
-            return Page();
+            await CreateNewAppointment(tattooRequest, scheduleStart, durationHours);
+            TempData["SuccessMessage"] = "Sessão agendada com sucesso!";
+            return RedirectToPage(new { id = tattooRequestId });
+        }
+
+        public async Task<IActionResult> OnPostMarkAsAnalyzingAsync(int requestId)
+        {
+            await _requestRepo.UpdateStatusAsync(requestId, RequestStatus.EmAnalise);
+            TempData["SuccessMessage"] = "Status alterado para 'Em Análise'.";
+            return RedirectToPage(new { id = requestId });
         }
 
         public async Task<IActionResult> OnPostCreateQuoteAsync(int requestId)
         {
+            await TryUpdateModelAsync(NewQuote, "NewQuote", q => q.Amount, q => q.DepositAmount, q => q.Description, q => q.ExpiryDate);
             if (!ModelState.IsValid)
             {
-                var request = await _requestRepo.GetRequestByIdAsync(requestId);
-                if (request == null) return NotFound();
-                TattooRequest = request;
-                return Page();
+                return await LoadPageDataAsync(requestId);
             }
 
-            await SaveQuoteAsync(requestId);
+            NewQuote.TattooRequestId = requestId;
+            _context.Quotes.Add(NewQuote);
+            await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Orçamento criado com sucesso!";
+            await _requestRepo.UpdateStatusAsync(requestId, RequestStatus.OrcamentoEnviado);
+
+            TempData["SuccessMessage"] = "Orçamento criado e enviado com sucesso!";
             return RedirectToPage(new { id = requestId });
         }
 
@@ -66,7 +85,15 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
                 return BadRequest(new { message = "A mensagem não pode estar vazia." });
             }
 
-            var newChatMessage = await SaveMessageAsync(requestId, input.Message);
+            var newChatMessage = new ChatMessage
+            {
+                TattooRequestId = requestId,
+                Message = input.Message,
+                Sender = "Admin"
+            };
+
+            _context.ChatMessages.Add(newChatMessage);
+            await _context.SaveChangesAsync();
 
             return new JsonResult(new
             {
@@ -76,24 +103,32 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             });
         }
 
-        private async Task SaveQuoteAsync(int requestId)
+        private async Task<IActionResult> LoadPageDataAsync(int requestId)
         {
-            NewQuote.TattooRequestId = requestId;
-            _context.Quotes.Add(NewQuote);
-            await _context.SaveChangesAsync();
+            var request = await _requestRepo.GetRequestByIdAsync(requestId);
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            TattooRequest = request;
+            HasExistingAppointment = request.Appointment != null;
+            NewQuote.ExpiryDate = DateTime.Today.AddDays(7);
+            return Page();
         }
 
-        private async Task<ChatMessage> SaveMessageAsync(int requestId, string messageContent)
+        private async Task CreateNewAppointment(TattooRequest request, DateTime start, int duration)
         {
-            var chatMessage = new ChatMessage
+            var newAppointment = new Appointment
             {
-                TattooRequestId = requestId,
-                Message = messageContent,
-                Sender = "Admin"
+                TattooRequestId = request.Id,
+                Title = $"Tattoo: {request.User?.FullName ?? "Cliente"}",
+                Start = start,
+                End = start.AddHours(duration),
             };
-            _context.ChatMessages.Add(chatMessage);
-            await _context.SaveChangesAsync();
-            return chatMessage;
+
+            await _appointmentRepo.AddAsync(newAppointment);
+            await _requestRepo.UpdateStatusAsync(request.Id, RequestStatus.Agendado);
         }
     }
 

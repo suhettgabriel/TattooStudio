@@ -22,6 +22,35 @@ namespace TattooStudio.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TattooStudio.Core.Entities.Appointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("End")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Start")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TattooRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TattooRequestId")
+                        .IsUnique();
+
+                    b.ToTable("Appointments");
+                });
+
             modelBuilder.Entity("TattooStudio.Core.Entities.ChatMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -156,9 +185,8 @@ namespace TattooStudio.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int>("StudioId")
                         .HasColumnType("int");
@@ -237,6 +265,17 @@ namespace TattooStudio.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TattooStudio.Core.Entities.Appointment", b =>
+                {
+                    b.HasOne("TattooStudio.Core.Entities.TattooRequest", "TattooRequest")
+                        .WithOne("Appointment")
+                        .HasForeignKey("TattooStudio.Core.Entities.Appointment", "TattooRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TattooRequest");
+                });
+
             modelBuilder.Entity("TattooStudio.Core.Entities.ChatMessage", b =>
                 {
                     b.HasOne("TattooStudio.Core.Entities.TattooRequest", "TattooRequest")
@@ -300,6 +339,8 @@ namespace TattooStudio.Infrastructure.Migrations
             modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequest", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("ChatMessages");
 

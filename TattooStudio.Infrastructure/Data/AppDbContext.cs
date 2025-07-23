@@ -16,5 +16,6 @@ namespace TattooStudio.Infrastructure.Data
         public DbSet<TattooRequestAnswer> TattooRequestAnswers { get; set; }
         public DbSet<Quote> Quotes { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
     }
 }

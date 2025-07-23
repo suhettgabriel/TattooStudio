@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
-using TattooStudio.Infrastructure.Data;
+using TattooStudio.Core.Enums;
+using TattooStudio.WebUI.Helpers;
 
 namespace TattooStudio.WebUI.Pages.Admin.Requests
 {
@@ -13,13 +13,11 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
     {
         private readonly ITattooRequestRepository _requestRepo;
         private readonly IStudioRepository _studioRepo;
-        private readonly AppDbContext _context;
 
-        public IndexModel(ITattooRequestRepository requestRepo, IStudioRepository studioRepo, AppDbContext context)
+        public IndexModel(ITattooRequestRepository requestRepo, IStudioRepository studioRepo)
         {
             _requestRepo = requestRepo;
             _studioRepo = studioRepo;
-            _context = context;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -39,51 +37,36 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
         public DateTime? EndDate { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public List<string>? SelectedStatuses { get; set; }
+        public List<RequestStatus>? SelectedStatuses { get; set; }
 
         public SelectList StudioOptions { get; set; }
-        public Dictionary<string, List<TattooRequest>> RequestsByStatus { get; set; } = new();
-        public List<string> StatusColumns { get; set; } = new List<string>
-        {
-            "Nova Solicitação", "Em Análise", "Orçamento Enviado", "Aguardando Sinal",
-            "Agendado", "Lista de Espera", "Recusado"
-        };
+        public Dictionary<RequestStatus, List<TattooRequest>> RequestsByStatus { get; set; } = new();
+        public List<RequestStatus> StatusColumns { get; set; } = Enum.GetValues(typeof(RequestStatus)).Cast<RequestStatus>().ToList();
 
         public async Task OnGetAsync()
         {
             if (SelectedStatuses == null || !SelectedStatuses.Any())
             {
-                SelectedStatuses = new List<string>(StatusColumns);
+                SelectedStatuses = new List<RequestStatus>(StatusColumns);
             }
             await LoadRequestsAsync();
         }
 
         public async Task<IActionResult> OnPostUpdateStatusAsync([FromBody] UpdateStatusModel model)
         {
-            if (model == null || model.RequestId <= 0 || string.IsNullOrEmpty(model.NewStatus))
+            if (model == null || model.RequestId <= 0)
             {
                 return BadRequest();
             }
 
-            await _requestRepo.UpdateRequestStatusAsync(model.RequestId, model.NewStatus);
+            await _requestRepo.UpdateStatusAsync(model.RequestId, model.NewStatus);
             return new OkResult();
         }
 
         public async Task<IActionResult> OnPostDeleteRequestAsync(int id)
         {
-            var request = await _context.TattooRequests.Include(r => r.Answers).FirstOrDefaultAsync(r => r.Id == id);
-            if (request != null)
-            {
-                var user = await _context.Users.FindAsync(request.UserId);
-                _context.TattooRequestAnswers.RemoveRange(request.Answers);
-                _context.TattooRequests.Remove(request);
-                if (user != null)
-                {
-                    _context.Users.Remove(user);
-                }
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Solicitação excluída com sucesso.";
-            }
+            await _requestRepo.DeleteAsync(id);
+            TempData["SuccessMessage"] = "Solicitação excluída com sucesso.";
             return RedirectToPage();
         }
 
@@ -104,6 +87,6 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
     public class UpdateStatusModel
     {
         public int RequestId { get; set; }
-        public string NewStatus { get; set; }
+        public RequestStatus NewStatus { get; set; }
     }
 }

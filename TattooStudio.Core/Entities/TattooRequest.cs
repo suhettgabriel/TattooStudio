@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TattooStudio.Core.Enums;
 
 namespace TattooStudio.Core.Entities
 {
@@ -15,7 +16,7 @@ namespace TattooStudio.Core.Entities
         public int StudioId { get; set; }
         public Studio? Studio { get; set; }
 
-        public string Status { get; set; } = "Nova Solicitação";
+        public RequestStatus Status { get; set; } = RequestStatus.NovaSolicitacao;
 
         public DateTime SubmissionDate { get; set; } = DateTime.Now;
 
@@ -24,5 +25,13 @@ namespace TattooStudio.Core.Entities
         public ICollection<Quote> Quotes { get; set; } = new List<Quote>();
 
         public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+
+        public Appointment? Appointment { get; set; }
+
+        public string GetAnswerByLabel(string label)
+        {
+            var answer = Answers.FirstOrDefault(a => a.FormField?.Label.Equals(label, StringComparison.OrdinalIgnoreCase) ?? false);
+            return answer?.Value ?? "Cliente";
+        }
     }
 }
