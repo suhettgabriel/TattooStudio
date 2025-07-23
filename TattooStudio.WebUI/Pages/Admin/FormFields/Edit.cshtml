@@ -1,0 +1,72 @@
+﻿@page "{id:int}"
+@model TattooStudio.WebUI.Pages.Admin.FormFields.EditModel
+@{
+    ViewData["Title"] = "Editar Campo do Formulário";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="FormField.Id" />
+
+            <div class="mb-3">
+                <label asp-for="FormField.Order" class="form-label">Ordem de Exibição</label>
+                <input asp-for="FormField.Order" type="number" class="form-control" />
+                <span asp-validation-for="FormField.Order" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FormField.Label" class="form-label">Texto da Pergunta (Label)</label>
+                <input asp-for="FormField.Label" class="form-control" />
+                <span asp-validation-for="FormField.Label" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FormField.FieldType" class="form-label">Tipo de Campo</label>
+                <select id="fieldTypeSelector" asp-for="FormField.FieldType" asp-items="Model.FieldTypeOptions" class="form-select"></select>
+                <span asp-validation-for="FormField.FieldType" class="text-danger"></span>
+            </div>
+
+            <div id="optionsDiv" class="mb-3" style="display: none;">
+                <label asp-for="FormField.Options" class="form-label">Opções (separadas por vírgula)</label>
+                <input asp-for="FormField.Options" class="form-control" placeholder="Opção 1, Opção 2, Opção 3" />
+                <span asp-validation-for="FormField.Options" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="FormField.IsRequired" type="checkbox" class="form-check-input" />
+                <label asp-for="FormField.IsRequired" class="form-check-label">É obrigatório?</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                <a asp-page="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fieldTypeSelector = document.getElementById('fieldTypeSelector');
+            const optionsDiv = document.getElementById('optionsDiv');
+
+            function toggleOptionsDiv() {
+                if (fieldTypeSelector.value === 'OpcaoUnica') {
+                    optionsDiv.style.display = 'block';
+                } else {
+                    optionsDiv.style.display = 'none';
+                }
+            }
+
+            toggleOptionsDiv();
+            fieldTypeSelector.addEventListener('change', toggleOptionsDiv);
+        });
+    </script>
+}

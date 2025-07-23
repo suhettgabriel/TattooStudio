@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TattooStudio.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TattooStudio.Infrastructure.Data;
 namespace TattooStudio.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250723000424_AddUserAndTattooRequestEntities")]
+    partial class AddUserAndTattooRequestEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,36 +24,6 @@ namespace TattooStudio.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("TattooStudio.Core.Entities.FormField", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FieldType")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Options")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FormFields");
-                });
 
             modelBuilder.Entity("TattooStudio.Core.Entities.Studio", b =>
                 {
@@ -88,48 +61,52 @@ namespace TattooStudio.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BodyPart")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("BodyPartPhotoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredSemester")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.PrimitiveCollection<string>("ReferenceImageUrls")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("StudioId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("SubmissionDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("TattooDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TattooSize")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("StudioId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("TattooRequests");
-                });
-
-            modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequestAnswer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FormFieldId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TattooRequestId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FormFieldId");
-
-                    b.HasIndex("TattooRequestId");
-
-                    b.ToTable("TattooRequestAnswers");
                 });
 
             modelBuilder.Entity("TattooStudio.Core.Entities.User", b =>
@@ -166,37 +143,21 @@ namespace TattooStudio.Infrastructure.Migrations
 
             modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequest", b =>
                 {
+                    b.HasOne("TattooStudio.Core.Entities.Studio", "Studio")
+                        .WithMany()
+                        .HasForeignKey("StudioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TattooStudio.Core.Entities.User", "User")
                         .WithMany("TattooRequests")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Studio");
+
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequestAnswer", b =>
-                {
-                    b.HasOne("TattooStudio.Core.Entities.FormField", "FormField")
-                        .WithMany()
-                        .HasForeignKey("FormFieldId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TattooStudio.Core.Entities.TattooRequest", "TattooRequest")
-                        .WithMany("Answers")
-                        .HasForeignKey("TattooRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FormField");
-
-                    b.Navigation("TattooRequest");
-                });
-
-            modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequest", b =>
-                {
-                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("TattooStudio.Core.Entities.User", b =>
