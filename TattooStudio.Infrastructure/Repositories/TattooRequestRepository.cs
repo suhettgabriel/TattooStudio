@@ -68,6 +68,8 @@ namespace TattooStudio.Infrastructure.Repositories
         {
             return await _context.TattooRequests
                                  .Include(r => r.User)
+                                 .Include(r => r.Quotes)
+                                 .Include(r => r.ChatMessages)
                                  .Include(r => r.Answers)
                                      .ThenInclude(a => a.FormField)
                                  .FirstOrDefaultAsync(r => r.Id == requestId);

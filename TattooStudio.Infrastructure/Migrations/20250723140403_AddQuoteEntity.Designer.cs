@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TattooStudio.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TattooStudio.Infrastructure.Data;
 namespace TattooStudio.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250723140403_AddQuoteEntity")]
+    partial class AddQuoteEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,38 +24,6 @@ namespace TattooStudio.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("TattooStudio.Core.Entities.ChatMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Sender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TattooRequestId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TattooRequestId");
-
-                    b.ToTable("ChatMessages");
-                });
 
             modelBuilder.Entity("TattooStudio.Core.Entities.FormField", b =>
                 {
@@ -237,17 +208,6 @@ namespace TattooStudio.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("TattooStudio.Core.Entities.ChatMessage", b =>
-                {
-                    b.HasOne("TattooStudio.Core.Entities.TattooRequest", "TattooRequest")
-                        .WithMany("ChatMessages")
-                        .HasForeignKey("TattooRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TattooRequest");
-                });
-
             modelBuilder.Entity("TattooStudio.Core.Entities.Quote", b =>
                 {
                     b.HasOne("TattooStudio.Core.Entities.TattooRequest", "TattooRequest")
@@ -300,8 +260,6 @@ namespace TattooStudio.Infrastructure.Migrations
             modelBuilder.Entity("TattooStudio.Core.Entities.TattooRequest", b =>
                 {
                     b.Navigation("Answers");
-
-                    b.Navigation("ChatMessages");
 
                     b.Navigation("Quotes");
                 });

@@ -20,5 +20,9 @@ namespace TattooStudio.Core.Entities
         public DateTime SubmissionDate { get; set; } = DateTime.Now;
 
         public ICollection<TattooRequestAnswer> Answers { get; set; } = new List<TattooRequestAnswer>();
+
+        public ICollection<Quote> Quotes { get; set; } = new List<Quote>();
+
+        public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
     }
 }

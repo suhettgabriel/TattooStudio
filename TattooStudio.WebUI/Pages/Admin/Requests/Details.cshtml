@@ -1,26 +1,45 @@
 ﻿@page "{id:int}"
 @model TattooStudio.WebUI.Pages.Admin.Requests.DetailsModel
+@Html.AntiForgeryToken()
 @{
     ViewData["Title"] = "Detalhes da Solicitação";
 }
 
-<h1 class="mb-4">@ViewData["Title"]</h1>
-
 @if (Model.TattooRequest != null)
 {
-    <div class="row">
-        <div class="col-lg-7">
-            <h4>Respostas do Formulário</h4>
-            <hr />
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>@ViewData["Title"]</h1>
+        <a asp-page="./Index" class="btn btn-secondary">Voltar para o Quadro</a>
+    </div>
+
+    <ul class="nav nav-tabs" id="requestDetailsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="answers-tab" data-bs-toggle="tab" data-bs-target="#answers-tab-pane" type="button" role="tab" aria-controls="answers-tab-pane" aria-selected="true">Respostas do Formulário</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="client-info-tab" data-bs-toggle="tab" data-bs-target="#client-info-tab-pane" type="button" role="tab" aria-controls="client-info-tab-pane" aria-selected="false">Informações do Cliente</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="quote-tab" data-bs-toggle="tab" data-bs-target="#quote-tab-pane" type="button" role="tab" aria-controls="quote-tab-pane" aria-selected="false">Orçamento</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button" role="tab" aria-controls="chat-tab-pane" aria-selected="false">Chat</button>
+        </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 p-3" id="requestDetailsTabContent">
+
+        <div class="tab-pane fade show active" id="answers-tab-pane" role="tabpanel" aria-labelledby="answers-tab" tabindex="0">
+            <h4 class="mb-3">Respostas do Formulário</h4>
             <dl class="row">
                 @foreach (var answer in Model.TattooRequest.Answers.OrderBy(a => a.FormField?.Order))
                 {
-                    <dt class="col-sm-4">@answer.FormField?.Label</dt>
-                    <dd class="col-sm-8">
+                    <dt class="col-sm-4 col-lg-3">@answer.FormField?.Label</dt>
+                    <dd class="col-sm-8 col-lg-9">
                         @if (answer.FormField?.FieldType == TattooStudio.Core.Entities.FormFieldType.UploadArquivo)
                         {
                             <a href="@answer.Value" target="_blank">
-                                <img src="@answer.Value" class="img-fluid rounded" style="max-height: 200px;" alt="Imagem de Referência" />
+                                <img src="@answer.Value" class="img-fluid rounded" style="max-height: 200px; max-width: 200px; object-fit: cover;" alt="Imagem de Referência" />
                             </a>
                         }
                         else
@@ -32,7 +51,8 @@
                 }
             </dl>
         </div>
-        <div class="col-lg-5">
+
+        <div class="tab-pane fade" id="client-info-tab-pane" role="tabpanel" aria-labelledby="client-info-tab" tabindex="0">
             <div class="card">
                 <div class="card-header">
                     <h4>Informações do Cliente</h4>
@@ -41,13 +61,10 @@
                     <dl>
                         <dt>Nome</dt>
                         <dd>@Model.TattooRequest.User?.FullName</dd>
-
                         <dt>E-mail</dt>
                         <dd>@Model.TattooRequest.User?.Email</dd>
-
                         <dt>WhatsApp</dt>
                         <dd>@Model.TattooRequest.User?.PhoneNumber</dd>
-
                         @if (!string.IsNullOrEmpty(Model.TattooRequest.User?.InstagramHandle))
                         {
                             <dt>Instagram</dt>
@@ -60,10 +77,95 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="mt-4">
-        <a asp-page="./Index" class="btn btn-secondary">Voltar para o Quadro</a>
+        <div class="tab-pane fade" id="quote-tab-pane" role="tabpanel" aria-labelledby="quote-tab" tabindex="0">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Gerenciar Orçamento</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.TattooRequest.Quotes.Any())
+                    {
+                        var quote = Model.TattooRequest.Quotes.OrderByDescending(q => q.CreatedAt).First();
+                        <dl class="row">
+                            <dt class="col-sm-5">Valor Total</dt>
+                            <dd class="col-sm-7">@quote.Amount.ToString("C")</dd>
+                            <dt class="col-sm-5">Valor do Sinal</dt>
+                            <dd class="col-sm-7">@quote.DepositAmount.ToString("C")</dd>
+                            <dt class="col-sm-5">Válido até</dt>
+                            <dd class="col-sm-7">@quote.ExpiryDate.ToString("dd/MM/yyyy")</dd>
+                            <dt class="col-sm-5">Status</dt>
+                            <dd class="col-sm-7"><span class="badge bg-warning">@quote.Status</span></dd>
+                            @if (!string.IsNullOrEmpty(quote.Description))
+                            {
+                                <dt class="col-sm-12 mt-2">Descrição</dt>
+                                <dd class="col-sm-12">@quote.Description</dd>
+                            }
+                        </dl>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="CreateQuote" asp-route-requestId="@Model.TattooRequest.Id">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="NewQuote.Amount" class="form-label"></label>
+                                    <input asp-for="NewQuote.Amount" class="form-control" />
+                                    <span asp-validation-for="NewQuote.Amount" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="NewQuote.DepositAmount" class="form-label"></label>
+                                    <input asp-for="NewQuote.DepositAmount" class="form-control" />
+                                    <span asp-validation-for="NewQuote.DepositAmount" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="NewQuote.Description" class="form-label"></label>
+                                    <textarea asp-for="NewQuote.Description" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="NewQuote.ExpiryDate" class="form-label"></label>
+                                    <input asp-for="NewQuote.ExpiryDate" class="form-control" />
+                                    <span asp-validation-for="NewQuote.ExpiryDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-12 d-grid">
+                                    <button type="submit" class="btn btn-success">Criar e Enviar Orçamento</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="chat-tab-pane" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="mb-3">Histórico de Conversa</h4>
+                    <div id="chat-history-container" class="chat-history" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--bs-border-color); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                        @foreach (var message in Model.TattooRequest.ChatMessages.OrderBy(m => m.SentAt))
+                        {
+                            var alignment = message.Sender == "Admin" ? "d-flex justify-content-end" : "d-flex justify-content-start";
+                            <div class="mb-3 @alignment">
+                                <div class="p-3 rounded" style="max-width: 70%; @(message.Sender == "Admin" ? "background-color: var(--bs-primary-bg-subtle);" : "background-color: var(--bs-secondary-bg);")">
+                                    <p class="mb-1">@message.Message</p>
+                                    <small class="text-muted d-block text-end">@message.SentAt.ToString("dd/MM/yy HH:mm")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mt-4">Enviar Nova Mensagem</h5>
+                    <div>
+                        <div class="mb-3">
+                            <textarea id="newMessageText" class="form-control" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                        </div>
+                        <button id="sendMessageBtn" type="button" class="btn btn-primary">Enviar Mensagem</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 }
 else
@@ -71,4 +173,76 @@ else
     <div class="alert alert-warning">
         Solicitação não encontrada.
     </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const newMessageText = document.getElementById('newMessageText');
+            const chatHistoryContainer = document.getElementById('chat-history-container');
+            const requestId = @(Model.TattooRequest?.Id ?? 0);
+
+            if (sendMessageBtn) {
+                sendMessageBtn.addEventListener('click', function () {
+                    const messageContent = newMessageText.value;
+                    if (!messageContent.trim()) {
+                        toastr.warning('A mensagem não pode estar vazia.');
+                        return;
+                    }
+
+                    const data = { message: messageContent };
+
+                    fetch(`?handler=SendMessage&requestId=${requestId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Falha na resposta da rede.');
+                        }
+                        return response.json();
+                    })
+                    .then(result => {
+                        appendMessageToHistory(result);
+                        newMessageText.value = '';
+                        toastr.success('Mensagem enviada com sucesso!');
+                    })
+                    .catch(error => {
+                        toastr.error('Ocorreu um erro ao enviar a mensagem.');
+                    });
+                });
+            }
+
+            function appendMessageToHistory(msgData) {
+                const messageWrapper = document.createElement('div');
+                messageWrapper.className = 'mb-3 d-flex justify-content-end';
+
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'p-3 rounded';
+                messageBubble.style.maxWidth = '70%';
+                messageBubble.style.backgroundColor = 'var(--bs-primary-bg-subtle)';
+
+                const messageText = document.createElement('p');
+                messageText.className = 'mb-1';
+                messageText.textContent = msgData.message;
+
+                const messageTime = document.createElement('small');
+                messageTime.className = 'text-muted d-block text-end';
+                messageTime.textContent = msgData.sentAt;
+
+                messageBubble.appendChild(messageText);
+                messageBubble.appendChild(messageTime);
+                messageWrapper.appendChild(messageBubble);
+
+                chatHistoryContainer.appendChild(messageWrapper);
+                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+            }
+        });
+    </script>
 }
