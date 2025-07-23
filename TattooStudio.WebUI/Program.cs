@@ -16,6 +16,7 @@ builder.Services.AddScoped<IFormFieldRepository, FormFieldRepository>();
 builder.Services.AddScoped<ITattooRequestRepository, TattooRequestRepository>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
 
 builder.Services.AddRazorPages();
 

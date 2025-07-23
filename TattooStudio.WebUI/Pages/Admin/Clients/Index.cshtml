@@ -1,0 +1,54 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Admin.Clients.IndexModel
+@{
+    ViewData["Title"] = "Gestão de Clientes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <form method="get" class="d-flex gap-2">
+            <input asp-for="SearchTerm" type="search" class="form-control" placeholder="Buscar por nome ou e-mail..." />
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            <a asp-page="./Index" class="btn btn-secondary">Limpar</a>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nome Completo</th>
+                        <th>E-mail</th>
+                        <th>WhatsApp</th>
+                        <th class="text-center">Nº de Solicitações</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Clients.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center">Nenhum cliente encontrado.</td>
+                        </tr>
+                    }
+                    @foreach (var client in Model.Clients)
+                    {
+                        <tr>
+                            <td>@client.FullName</td>
+                            <td>@client.Email</td>
+                            <td>@client.PhoneNumber</td>
+                            <td class="text-center">@client.TattooRequests.Count</td>
+                            <td class="text-end">
+                                <a asp-page="./Details" asp-route-id="@client.Id" class="btn btn-sm btn-outline-primary">Ver Histórico</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
