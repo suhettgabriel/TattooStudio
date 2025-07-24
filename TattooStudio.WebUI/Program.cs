@@ -21,6 +21,7 @@ builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
 builder.Services.AddScoped<IPricingRuleRepository, PricingRuleRepository>();
 builder.Services.AddScoped<IGalleryImageRepository, GalleryImageRepository>();
+builder.Services.AddScoped<IFaqRepository, FaqRepository>();
 
 builder.Services.AddRazorPages();
 

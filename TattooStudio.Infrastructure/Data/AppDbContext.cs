@@ -20,5 +20,6 @@ namespace TattooStudio.Infrastructure.Data
         public DbSet<SystemSetting> SystemSettings { get; set; }
         public DbSet<PricingRule> PricingRules { get; set; }
         public DbSet<GalleryImage> GalleryImages { get; set; }
+        public DbSet<FaqItem> FaqItems { get; set; }
     }
 }
