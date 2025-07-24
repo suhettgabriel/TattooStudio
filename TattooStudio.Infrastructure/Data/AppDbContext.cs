@@ -19,5 +19,6 @@ namespace TattooStudio.Infrastructure.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<SystemSetting> SystemSettings { get; set; }
         public DbSet<PricingRule> PricingRules { get; set; }
+        public DbSet<GalleryImage> GalleryImages { get; set; }
     }
 }

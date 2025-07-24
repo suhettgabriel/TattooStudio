@@ -20,8 +20,7 @@
             <p class="text-muted">Conheça um pouco do meu trabalho e inspire-se para sua próxima tatuagem.</p>
         </div>
     </div>
-
-    <div id="tattooCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+    <div id="tattooCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
             @for (int i = 0; i < Model.GalleryImages.Count; i++)
             {
@@ -33,9 +32,14 @@
             {
                 var image = Model.GalleryImages[i];
                 <div class="carousel-item @(i == 0 ? "active" : "")">
-                    <img src="@image.ImageUrl" class="d-block w-100 carousel-image" alt="@image.Description">
-                    <div class="carousel-caption d-none d-md-block">
-                        <p>@image.Description</p>
+                    <div class="carousel-item-wrapper">
+                        <img src="@image.ImageUrl" class="d-block w-100 carousel-image" alt="@image.Description">
+                        @if (!string.IsNullOrEmpty(image.Description))
+                        {
+                            <div class="carousel-caption d-none d-md-block">
+                                <p>@image.Description</p>
+                            </div>
+                        }
                     </div>
                 </div>
             }
