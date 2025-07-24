@@ -62,6 +62,18 @@
                 <hr class="my-4" />
 
                 <h4>Sobre a Tatuagem</h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Tamanho Aproximado (em cm)</label>
+                    <input type="number" id="tattoo-size" class="form-control" placeholder="Informe a maior medida, ex: 15" />
+                </div>
+
+                <div class="mb-4 p-3 border rounded bg-light text-center">
+                    <h5>Estimativa de Valor</h5>
+                    <h3 id="price-estimate" class="font-weight-bold text-primary">R$ 0,00</h3>
+                    <small class="text-muted">Selecione o local e o tamanho para ver uma estimativa.</small>
+                </div>
+
                 @foreach (var field in Model.FormFields)
                 {
                     <div class="mb-3">
@@ -162,9 +174,12 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        const pricingRules = JSON.parse('@Html.Raw(Model.PricingRulesJson)');
+
         document.addEventListener('DOMContentLoaded', function () {
             initializePhoneMask();
             initializeAvatar();
+            initializePriceCalculator();
         });
 
         function initializePhoneMask() {
@@ -236,6 +251,49 @@
                 }
 
                 hiddenInput.value = selectedParts.join(', ');
+            }
+        }
+
+        function initializePriceCalculator() {
+            const sizeInput = document.getElementById('tattoo-size');
+            const avatarParts = document.querySelectorAll('.avatar-container .body-part');
+
+            sizeInput.addEventListener('input', updatePrice);
+            avatarParts.forEach(part => part.addEventListener('click', () => setTimeout(updatePrice, 100)));
+        }
+
+        function updatePrice() {
+            const sizeInput = document.getElementById('tattoo-size');
+            const hiddenAvatarInput = document.querySelector('input[id^="hidden-input-"]');
+            const priceDisplay = document.getElementById('price-estimate');
+
+            const size = parseInt(sizeInput.value) || 0;
+            const selectedParts = hiddenAvatarInput.value.split(', ').filter(p => p);
+
+            let totalEstimate = 0;
+            let ruleFound = false;
+
+            if (size > 0 && selectedParts.length > 0) {
+                const mainPart = selectedParts[0];
+
+                const matchingRule = pricingRules.find(rule =>
+                    rule.BodyPart.toLowerCase() === mainPart.toLowerCase() &&
+                    size >= rule.MinSize &&
+                    size <= rule.MaxSize
+                );
+
+                if (matchingRule) {
+                    totalEstimate = matchingRule.BasePrice;
+                    ruleFound = true;
+                }
+            }
+
+            if (ruleFound) {
+                priceDisplay.textContent = totalEstimate.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            } else if (size > 0 && selectedParts.length > 0) {
+                priceDisplay.textContent = "Consulte";
+            } else {
+                 priceDisplay.textContent = "R$ 0,00";
             }
         }
     </script>

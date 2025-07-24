@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
 
@@ -14,19 +15,22 @@ namespace TattooStudio.WebUI.Pages
         private readonly IFileStorageService _fileStorage;
         private readonly IStudioRepository _studioRepo;
         private readonly ISystemSettingRepository _settingsRepo;
+        private readonly IPricingRuleRepository _pricingRepo;
 
         public SolicitarAgendamentoModel(
             IFormFieldRepository formFieldRepo,
             ITattooRequestRepository requestRepo,
             IFileStorageService fileStorage,
             IStudioRepository studioRepo,
-            ISystemSettingRepository settingsRepo)
+            ISystemSettingRepository settingsRepo,
+            IPricingRuleRepository pricingRepo)
         {
             _formFieldRepo = formFieldRepo;
             _requestRepo = requestRepo;
             _fileStorage = fileStorage;
             _studioRepo = studioRepo;
             _settingsRepo = settingsRepo;
+            _pricingRepo = pricingRepo;
         }
 
         [BindProperty]
@@ -35,6 +39,7 @@ namespace TattooStudio.WebUI.Pages
         public bool IsAgendaOpen { get; set; }
         public IList<FormField> FormFields { get; set; } = new List<FormField>();
         public SelectList StudioOptions { get; set; }
+        public string PricingRulesJson { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -70,6 +75,9 @@ namespace TattooStudio.WebUI.Pages
             FormFields = await _formFieldRepo.GetAllAsync();
             var studios = await _studioRepo.GetAllAsync();
             StudioOptions = new SelectList(studios, nameof(Studio.Id), nameof(Studio.City));
+
+            var pricingRules = await _pricingRepo.GetAllAsync();
+            PricingRulesJson = JsonSerializer.Serialize(pricingRules);
         }
 
         private async Task SaveDynamicRequestAsync()

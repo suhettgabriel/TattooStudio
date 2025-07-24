@@ -1,0 +1,109 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Admin.Pricing.IndexModel
+@{
+    ViewData["Title"] = "Parametrização de Preços";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Nova Regra de Preço</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="mb-3">
+                        <label asp-for="NewRule.BodyPart" class="form-label"></label>
+                        <input asp-for="NewRule.BodyPart" class="form-control" placeholder="Ex: Antebraço Esquerdo" />
+                        <span asp-validation-for="NewRule.BodyPart" class="text-danger"></span>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label asp-for="NewRule.MinSize" class="form-label"></label>
+                            <input asp-for="NewRule.MinSize" type="number" class="form-control" />
+                            <span asp-validation-for="NewRule.MinSize" class="text-danger"></span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label asp-for="NewRule.MaxSize" class="form-label"></label>
+                            <input asp-for="NewRule.MaxSize" type="number" class="form-control" />
+                            <span asp-validation-for="NewRule.MaxSize" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewRule.BasePrice" class="form-label"></label>
+                        <input asp-for="NewRule.BasePrice" class="form-control" />
+                        <span asp-validation-for="NewRule.BasePrice" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Salvar Regra</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Regras Cadastradas</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>@Html.DisplayNameFor(m => m.Rules[0].BodyPart)</th>
+                                <th>Faixa de Tamanho (cm)</th>
+                                <th>@Html.DisplayNameFor(m => m.Rules[0].BasePrice)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rule in Model.Rules)
+                            {
+                                <tr>
+                                    <td>@rule.BodyPart</td>
+                                    <td>@rule.MinSize cm - @rule.MaxSize cm</td>
+                                    <td>@rule.BasePrice.ToString("C")</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@rule.Id" class="d-inline delete-form">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Você tem certeza?',
+                    text: "Esta ação não pode ser revertida!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sim, excluir!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
