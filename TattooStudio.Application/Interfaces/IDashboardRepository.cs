@@ -1,4 +1,5 @@
 ﻿using TattooStudio.Core.Entities;
+using TattooStudio.Core.Enums;
 
 namespace TattooStudio.Application.Interfaces
 {
@@ -10,5 +11,6 @@ namespace TattooStudio.Application.Interfaces
         Task<int> GetWaitingListCountAsync();
         Task<Dictionary<string, int>> GetRequestsByMonthAsync(int year);
         Task<Dictionary<string, decimal>> GetRevenueByMonthAsync(int year);
+        Task<Dictionary<RequestStatus, int>> GetRequestsByStatusCountAsync();
     }
 }

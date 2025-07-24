@@ -91,12 +91,12 @@
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Atalhos Rápidos</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Distribuição de Status</h6>
             </div>
             <div class="card-body">
-                <a asp-page="/Admin/Requests/Index" class="btn btn-primary btn-lg d-block mb-3">Ver Quadro de Solicitações</a>
-                <a asp-page="/Admin/Calendar/Index" class="btn btn-info btn-lg d-block mb-3">Acessar Calendário</a>
-                <a asp-page="/Admin/FormFields/Index" class="btn btn-secondary btn-lg d-block">Gerenciar Formulário</a>
+                <div class="chart-pie pt-4">
+                    <canvas id="statusPieChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +112,14 @@
                 .then(data => {
                     renderRequestsChart(data.labels, data.requestData);
                 })
-                .catch(error => console.error('Error fetching chart data:', error));
+                .catch(error => console.error('Error fetching line chart data:', error));
+
+            fetch('?handler=StatusChartData')
+                .then(response => response.json())
+                .then(data => {
+                    renderStatusPieChart(data.labels, data.counts, data.colors);
+                })
+                .catch(error => console.error('Error fetching pie chart data:', error));
         });
 
         function renderRequestsChart(labels, requestData) {
@@ -143,7 +150,7 @@
                         y: {
                             beginAtZero: true,
                              ticks: {
-                                stepSize: 1
+                                precision: 0
                             }
                         }
                     },
@@ -153,6 +160,41 @@
                         }
                     }
                 }
+            });
+        }
+
+        function renderStatusPieChart(labels, counts, colors) {
+            const ctx = document.getElementById('statusPieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: colors,
+                        hoverBackgroundColor: colors,
+                        hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyColor: "#858796",
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            xPadding: 15,
+                            yPadding: 15,
+                            displayColors: false,
+                            caretPadding: 10,
+                        }
+                    },
+                },
             });
         }
     </script>
