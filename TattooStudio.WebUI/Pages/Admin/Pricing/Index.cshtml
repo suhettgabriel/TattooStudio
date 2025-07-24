@@ -19,7 +19,9 @@
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                     <div class="mb-3">
                         <label asp-for="NewRule.BodyPart" class="form-label"></label>
-                        <input asp-for="NewRule.BodyPart" class="form-control" placeholder="Ex: Antebraço Esquerdo" />
+                        <select asp-for="NewRule.BodyPart" asp-items="Model.BodyPartOptions" class="form-select">
+                            <option value="">Selecione uma parte do corpo</option>
+                        </select>
                         <span asp-validation-for="NewRule.BodyPart" class="text-danger"></span>
                     </div>
                     <div class="row">
@@ -63,6 +65,10 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if (!Model.Rules.Any())
+                            {
+                                <tr><td colspan="4" class="text-center text-muted">Nenhuma regra de preço cadastrada.</td></tr>
+                            }
                             @foreach (var rule in Model.Rules)
                             {
                                 <tr>

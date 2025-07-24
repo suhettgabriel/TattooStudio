@@ -9,7 +9,17 @@
     <div class="hero-content">
         <h1 class="display-3 fw-bold">Transforme sua Pele em Arte</h1>
         <p class="lead my-4">Agende uma consulta para criar uma tatuagem exclusiva e cheia de significado.</p>
-        <a asp-page="/SolicitarAgendamento" class="btn btn-primary btn-lg">Iniciar Agendamento</a>
+        <div class="d-flex justify-content-center align-items-center gap-3">
+            @if (Model.IsAgendaOpen)
+            {
+                <a asp-page="/SolicitarAgendamento" class="btn btn-primary btn-lg">Iniciar Agendamento</a>
+                <a asp-page="/WaitingList" class="btn btn-outline-warning btn-lg">Entrar na Lista de Espera</a>
+ }
+            else
+            {
+                <a asp-page="/WaitingList" class="btn btn-warning btn-lg">Entrar na Lista de Espera</a>
+            }
+        </div>
     </div>
 </div>
 

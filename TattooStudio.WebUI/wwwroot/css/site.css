@@ -157,3 +157,8 @@ main {
 		fill: var(--bs-primary);
 		stroke: #212529;
 	}
+.avatar-container {
+	max-width: 280px; /* Reduzimos o tamanho aqui */
+	margin: 0 auto;
+	text-align: center;
+}

@@ -49,19 +49,13 @@ namespace TattooStudio.WebUI.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
-            await LoadInitialDataAsync();
-            if (!IsAgendaOpen)
-            {
-                ModelState.AddModelError(string.Empty, "A agenda está fechada no momento.");
-                return Page();
-            }
-
             if (!ModelState.IsValid)
             {
+                await LoadInitialDataAsync();
                 return Page();
             }
 
-            await SaveDynamicRequestAsync();
+            await SaveRequestAsync();
 
             TempData["SuccessMessage"] = "Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.";
             return RedirectToPage("./Index");
@@ -71,16 +65,14 @@ namespace TattooStudio.WebUI.Pages
         {
             var settings = await _settingsRepo.GetSettingsAsync();
             IsAgendaOpen = settings.IsAgendaOpen;
-
             FormFields = await _formFieldRepo.GetAllAsync();
             var studios = await _studioRepo.GetAllAsync();
             StudioOptions = new SelectList(studios, nameof(Studio.Id), nameof(Studio.City));
-
             var pricingRules = await _pricingRepo.GetAllAsync();
             PricingRulesJson = JsonSerializer.Serialize(pricingRules);
         }
 
-        private async Task SaveDynamicRequestAsync()
+        private async Task SaveRequestAsync()
         {
             var newUser = new User
             {
@@ -93,31 +85,28 @@ namespace TattooStudio.WebUI.Pages
             var newRequest = new TattooRequest
             {
                 User = newUser,
-                StudioId = Input.ClientInfo.StudioId
+                StudioId = Input.ClientInfo.StudioId,
+                EstimatedSize = Input.EstimatedSize,
+                InitialEstimate = Input.InitialEstimate
             };
+
+            if (Input.ReferenceImage != null)
+            {
+                var fileUrl = await _fileStorage.SaveFileAsync(Input.ReferenceImage, "request_files");
+                newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = 1, Value = fileUrl }); // Mapeamento hipotético para "Imagem da Ideia"
+            }
+
+            if (Input.BodyPartPhoto != null)
+            {
+                var fileUrl = await _fileStorage.SaveFileAsync(Input.BodyPartPhoto, "request_files");
+                newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = 2, Value = fileUrl }); // Mapeamento hipotético para "Foto do Local"
+            }
 
             foreach (var answer in Input.Answers)
             {
                 if (!string.IsNullOrEmpty(answer.Value))
                 {
-                    newRequest.Answers.Add(new TattooRequestAnswer
-                    {
-                        FormFieldId = answer.Key,
-                        Value = answer.Value
-                    });
-                }
-            }
-
-            foreach (var fileAnswer in Input.FileAnswers)
-            {
-                if (fileAnswer.Value != null && fileAnswer.Value.Length > 0)
-                {
-                    var fileUrl = await _fileStorage.SaveFileAsync(fileAnswer.Value, "request_files");
-                    newRequest.Answers.Add(new TattooRequestAnswer
-                    {
-                        FormFieldId = fileAnswer.Key,
-                        Value = fileUrl
-                    });
+                    newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = answer.Key, Value = answer.Value });
                 }
             }
 
@@ -129,7 +118,14 @@ namespace TattooStudio.WebUI.Pages
     {
         public ClientInfoInputModel ClientInfo { get; set; } = new();
         public Dictionary<int, string> Answers { get; set; } = new();
-        public Dictionary<int, IFormFile> FileAnswers { get; set; } = new();
+        public int? EstimatedSize { get; set; }
+        public decimal? InitialEstimate { get; set; }
+
+        [Display(Name = "Envie uma foto da sua ideia")]
+        public IFormFile? ReferenceImage { get; set; }
+
+        [Display(Name = "Envie uma foto do local do corpo")]
+        public IFormFile? BodyPartPhoto { get; set; }
     }
 
     public class ClientInfoInputModel

@@ -1,0 +1,157 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.WaitingListModel
+@{
+    ViewData["Title"] = "Faça Parte da Lista de Espera";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="text-center mb-5">
+            <h1 class="display-5">@ViewData["Title"]</h1>
+            <p class="lead text-muted">Tenha prioridade total quando a agenda for aberta. Preencha seus dados abaixo para ser informado(a) em primeira mão.</p>
+        </div>
+
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label asp-for="Input.FullName" class="form-label"></label>
+                    <input asp-for="Input.FullName" class="form-control" />
+                    <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                    <input asp-for="Input.PhoneNumber" class="form-control" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="Input.StudioId" class="form-label"></label>
+                    <select asp-for="Input.StudioId" asp-items="Model.StudioOptions" class="form-select">
+                        <option value="">Selecione um estúdio</option>
+                    </select>
+                    <span asp-validation-for="Input.StudioId" class="text-danger"></span>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <div class="form-check">
+                        <input asp-for="Input.IsForeigner" class="form-check-input" id="isForeignerCheck" />
+                        <label asp-for="Input.IsForeigner" class="form-check-label"></label>
+                    </div>
+                </div>
+
+                <div id="brazil-location" class="row g-3 col-12">
+                    <div class="col-md-6">
+                        <label asp-for="Input.State" class="form-label"></label>
+                        <select asp-for="Input.State" class="form-select" id="state-select">
+                            <option value="">Selecione um Estado</option>
+                        </select>
+                        <span asp-validation-for="Input.State" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Input.City" class="form-label"></label>
+                        <select asp-for="Input.City" class="form-select" id="city-select" disabled>
+                            <option value="">Selecione uma Cidade</option>
+                        </select>
+                        <span asp-validation-for="Input.City" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div id="foreign-location" class="col-12" style="display: none;">
+                    <label asp-for="Input.ForeignLocation" class="form-label"></label>
+                    <input asp-for="Input.ForeignLocation" class="form-control" />
+                </div>
+
+                <div class="col-md-12">
+                    <label asp-for="Input.TattooIdea" class="form-label"></label>
+                    <textarea asp-for="Input.TattooIdea" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Input.TattooIdea" class="text-danger"></span>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-check">
+                        <input asp-for="Input.HasTattooedBefore" class="form-check-input" />
+                        <label asp-for="Input.HasTattooedBefore" class="form-check-label"></label>
+                    </div>
+                </div>
+                <div class="col-12 d-grid mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Entrar na Lista de Espera</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initializePhoneMask();
+            initializeLocationFields();
+        });
+
+        function initializePhoneMask() {
+            const phoneElement = document.querySelector('input[name="Input.PhoneNumber"]');
+            if (phoneElement) {
+                const phoneMask = IMask(phoneElement, {
+                    mask: '(00) 00000-0000'
+                });
+            }
+        }
+
+        function initializeLocationFields() {
+            const isForeignerCheck = document.getElementById('isForeignerCheck');
+            const brazilLocationDiv = document.getElementById('brazil-location');
+            const foreignLocationDiv = document.getElementById('foreign-location');
+            const stateSelect = document.getElementById('state-select');
+            const citySelect = document.getElementById('city-select');
+            const foreignLocationInput = document.getElementById('Input_ForeignLocation');
+
+            function toggleLocationFields() {
+                const isChecked = isForeignerCheck.checked;
+                brazilLocationDiv.style.display = isChecked ? 'none' : 'flex';
+                foreignLocationDiv.style.display = isChecked ? 'block' : 'none';
+
+                stateSelect.required = !isChecked;
+                citySelect.required = !isChecked;
+                foreignLocationInput.required = isChecked;
+            }
+
+            isForeignerCheck.addEventListener('change', toggleLocationFields);
+
+            fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+                .then(res => res.json())
+                .then(states => {
+                    states.forEach(state => {
+                        stateSelect.innerHTML += `<option value="${state.sigla}">${state.nome}</option>`;
+                    });
+                });
+
+            stateSelect.addEventListener('change', function() {
+                const stateUF = this.value;
+                citySelect.innerHTML = '<option value="">Carregando...</option>';
+                citySelect.disabled = true;
+
+                if (!stateUF) {
+                    citySelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                    return;
+                }
+
+                fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${stateUF}/municipios?orderBy=nome`)
+                    .then(res => res.json())
+                    .then(cities => {
+                        citySelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                        cities.forEach(city => {
+                            citySelect.innerHTML += `<option value="${city.nome}">${city.nome}</option>`;
+                        });
+                        citySelect.disabled = false;
+                    });
+            });
+
+            toggleLocationFields();
+        }
+    </script>
+}

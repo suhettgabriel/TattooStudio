@@ -13,7 +13,16 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
         <div>
-            @if (Model.TattooRequest.Status == RequestStatus.NovaSolicitacao)
+            @if (Model.TattooRequest.Status == RequestStatus.ListaDeEspera)
+            {
+                <form method="post" asp-page-handler="ConvertToRequest" asp-route-id="@Model.TattooRequest.Id" class="d-inline">
+                    <button type="submit" class="btn btn-success btn-icon-split">
+                        <span class="icon text-white-50"><i class="bi bi-check-circle-fill"></i></span>
+                        <span class="text">Converter em Solicitação</span>
+                    </button>
+                </form>
+            }
+            else if (Model.TattooRequest.Status == RequestStatus.NovaSolicitacao)
             {
                 <form method="post" asp-page-handler="MarkAsAnalyzing" asp-route-requestId="@Model.TattooRequest.Id" class="d-inline">
                     <button type="submit" class="btn btn-primary btn-icon-split">
@@ -22,13 +31,15 @@
                     </button>
                 </form>
             }
-            @if (!Model.HasExistingAppointment && (Model.TattooRequest.Status == RequestStatus.AguardandoSinal || Model.TattooRequest.Status == RequestStatus.ListaDeEspera || Model.TattooRequest.Status == RequestStatus.OrcamentoEnviado))
+
+            @if (!Model.HasExistingAppointment && (Model.TattooRequest.Status == RequestStatus.AguardandoSinal || Model.TattooRequest.Status == RequestStatus.OrcamentoEnviado))
             {
                 <button id="scheduleButton" class="btn btn-success btn-icon-split">
                     <span class="icon text-white-50"><i class="bi bi-calendar-check"></i></span>
                     <span class="text">Agendar Sessão</span>
                 </button>
             }
+
             @if (Model.HasExistingAppointment)
             {
                 <a href="/Admin/Calendar" class="btn btn-info btn-icon-split">
@@ -53,8 +64,17 @@
                     <button class="nav-link active" id="answers-tab" data-bs-toggle="tab" data-bs-target="#answers-tab-pane" type="button" role="tab" aria-controls="answers-tab-pane" aria-selected="true">Perguntas e Respostas</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="client-info-tab" data-bs-toggle="tab" data-bs-target="#client-info-tab-pane" type="button" role="tab" aria-controls="client-info-tab-pane" aria-selected="false">Detalhes da Solicitação</button>
+                    <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images-tab-pane" type="button" role="tab" aria-controls="images-tab-pane" aria-selected="false">Imagens de Referência</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="client-info-tab" data-bs-toggle="tab" data-bs-target="#client-info-tab-pane" type="button" role="tab" aria-controls="client-info-tab-pane" aria-selected="false">Detalhes do Cliente</button>
+                </li>
+                @if (Model.TattooRequest.Status == RequestStatus.EmAnalise)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis-tab-pane" type="button" role="tab" aria-controls="analysis-tab-pane" aria-selected="false">Análise Interna</button>
+                    </li>
+                }
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="quote-tab" data-bs-toggle="tab" data-bs-target="#quote-tab-pane" type="button" role="tab" aria-controls="quote-tab-pane" aria-selected="false">Orçamento</button>
                 </li>
@@ -65,28 +85,55 @@
             <div class="tab-content border border-top-0 p-3" id="requestDetailsTabContent">
                 <div class="tab-pane fade show active" id="answers-tab-pane" role="tabpanel" aria-labelledby="answers-tab" tabindex="0">
                     <dl class="row mt-3">
-                        @foreach (var answer in Model.TattooRequest.Answers.OrderBy(a => a.FormField?.Order))
+                        @foreach (var answer in Model.TextAnswers)
                         {
                             <dt class="col-sm-4 col-lg-3">@answer.FormField?.Label</dt>
                             <dd class="col-sm-8 col-lg-9 mb-3">
-                                @if (answer.FormField?.FieldType == FormFieldType.UploadArquivo && !string.IsNullOrEmpty(answer.Value))
-                                {
-                                    <a href="~/@answer.Value" data-bs-toggle="tooltip" title="Clique para ampliar" target="_blank">
-                                        <img src="~/@answer.Value" class="img-fluid img-thumbnail" style="max-height: 200px; object-fit: cover;" alt="Imagem de Referência" />
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="text-break">@answer.Value</span>
-                                }
+                                <span class="text-break">@answer.Value</span>
                             </dd>
                         }
                     </dl>
+                </div>
+                <div class="tab-pane fade" id="images-tab-pane" role="tabpanel" aria-labelledby="images-tab" tabindex="0">
+                    <div class="row g-3 mt-2">
+                        @if (!Model.ImageAnswers.Any())
+                        {
+                            <div class="col-12">
+                                <p class="text-center text-muted mt-3">Nenhuma imagem de referência foi enviada.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var answer in Model.ImageAnswers)
+                            {
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="card">
+                                        <a href="~/@answer.Value" data-bs-toggle="tooltip" title="Clique para ampliar" target="_blank">
+                                            <img src="~/@answer.Value" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Imagem de Referência" />
+                                        </a>
+                                        <div class="card-body p-2">
+                                            <p class="card-text small text-muted">@answer.FormField?.Label</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
                 </div>
                 <div class="tab-pane fade" id="client-info-tab-pane" role="tabpanel" aria-labelledby="client-info-tab" tabindex="0">
                     <dl class="row mt-3">
                         <dt class="col-sm-4 col-lg-3">Nome do Cliente</dt>
                         <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.FullName</dd>
+                        @if (Model.TattooRequest.EstimatedSize.HasValue && Model.TattooRequest.EstimatedSize > 0)
+                        {
+                            <dt class="col-sm-4 col-lg-3">Tamanho Informado</dt>
+                            <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.EstimatedSize cm</dd>
+                        }
+                        @if (Model.TattooRequest.InitialEstimate.HasValue && Model.TattooRequest.InitialEstimate > 0)
+                        {
+                            <dt class="col-sm-4 col-lg-3">Estimativa Inicial</dt>
+                            <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.InitialEstimate.Value.ToString("C")</dd>
+                        }
                         <dt class="col-sm-4 col-lg-3">E-mail</dt>
                         <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.Email</dd>
                         <dt class="col-sm-4 col-lg-3">WhatsApp</dt>
@@ -100,6 +147,18 @@
                         <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.SubmissionDate.ToString("dd/MM/yyyy 'às' HH:mm")</dd>
                     </dl>
                 </div>
+                @if (Model.TattooRequest.Status == RequestStatus.EmAnalise)
+                {
+                    <div class="tab-pane fade" id="analysis-tab-pane" role="tabpanel" aria-labelledby="analysis-tab" tabindex="0">
+                        <form method="post" asp-page-handler="SaveNotes" asp-route-id="@Model.TattooRequest.Id" class="mt-3">
+                            <h5 class="mb-3">Anotações da Análise (visível apenas para você)</h5>
+                            <div class="mb-3">
+                                <textarea asp-for="AnalysisNotes" class="form-control" rows="8" placeholder="Adicione suas anotações sobre a viabilidade, complexidade, ideias de design, etc."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Salvar Anotações</button>
+                        </form>
+                    </div>
+                }
                 <div class="tab-pane fade" id="quote-tab-pane" role="tabpanel" aria-labelledby="quote-tab" tabindex="0">
                     @if (Model.TattooRequest.Quotes.Any())
                     {
@@ -145,7 +204,15 @@
                                     <span asp-validation-for="NewQuote.ExpiryDate" class="text-danger"></span>
                                 </div>
                                 <div class="col-12 d-grid">
-                                    <button type="submit" class="btn btn-success">Criar e Enviar Orçamento</button>
+                                    <button type="submit" class="btn btn-success" disabled="@(Model.TattooRequest.Status != RequestStatus.EmAnalise)">
+                                        Criar e Enviar Orçamento
+                                    </button>
+                                    @if (Model.TattooRequest.Status != RequestStatus.EmAnalise)
+                                    {
+                                        <small class="form-text text-muted text-center mt-2">
+                                            O orçamento só pode ser criado quando a solicitação está "Em Análise".
+                                        </small>
+                                    }
                                 </div>
                             </div>
                         </form>

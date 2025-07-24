@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
+using TattooStudio.WebUI.Helpers;
 
 namespace TattooStudio.WebUI.Pages.Admin.Pricing
 {
@@ -15,6 +17,7 @@ namespace TattooStudio.WebUI.Pages.Admin.Pricing
         }
 
         public IList<PricingRule> Rules { get; set; } = new List<PricingRule>();
+        public SelectList BodyPartOptions { get; set; }
 
         [BindProperty]
         public PricingRule NewRule { get; set; } = new();
@@ -22,6 +25,7 @@ namespace TattooStudio.WebUI.Pages.Admin.Pricing
         public async Task OnGetAsync()
         {
             Rules = await _pricingRepo.GetAllAsync();
+            PopulateSelectLists();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -29,6 +33,7 @@ namespace TattooStudio.WebUI.Pages.Admin.Pricing
             if (!ModelState.IsValid)
             {
                 Rules = await _pricingRepo.GetAllAsync();
+                PopulateSelectLists();
                 return Page();
             }
 
@@ -42,6 +47,11 @@ namespace TattooStudio.WebUI.Pages.Admin.Pricing
             await _pricingRepo.DeleteAsync(id);
             TempData["SuccessMessage"] = "Regra de preço excluída com sucesso!";
             return RedirectToPage();
+        }
+
+        private void PopulateSelectLists()
+        {
+            BodyPartOptions = new SelectList(AvatarPartsHelper.GetAllParts());
         }
     }
 }

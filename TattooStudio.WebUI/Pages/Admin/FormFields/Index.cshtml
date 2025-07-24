@@ -9,7 +9,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>@ViewData["Title"]</h1>
     <a asp-page="Create" class="btn btn-success">
-        Novo Campo
+        <i class="bi bi-plus-circle"></i> Novo Campo
     </a>
 </div>
 <p class="text-muted">Arraste e solte as linhas para reordenar os campos do formulário.</p>
@@ -27,11 +27,12 @@
             </tr>
         </thead>
         <tbody id="sortable-table">
-            @foreach (var item in Model.FormFields)
+            @for (int i = 0; i < Model.FormFields.Count; i++)
             {
+                var item = Model.FormFields[i];
                 <tr data-id="@item.Id">
                     <td class="text-center" style="cursor: move;"><i class="bi bi-grip-vertical"></i></td>
-                    <td>@Html.DisplayFor(modelItem => item.Order)</td>
+                    <td>@(i + 1)</td>
                     <td>@Html.DisplayFor(modelItem => item.Label)</td>
                     <td>@item.FieldType.GetDisplayName()</td>
                     <td>@(item.IsRequired ? "Sim" : "Não")</td>

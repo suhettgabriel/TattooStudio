@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using TattooStudio.Application.Interfaces;
@@ -24,7 +24,12 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
         [BindProperty]
         public Quote NewQuote { get; set; } = new();
 
+        [BindProperty]
+        public string? AnalysisNotes { get; set; }
+
         public TattooRequest TattooRequest { get; set; }
+        public List<TattooRequestAnswer> TextAnswers { get; set; } = new();
+        public List<TattooRequestAnswer> ImageAnswers { get; set; } = new();
         public bool HasExistingAppointment { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
@@ -33,31 +38,61 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             return await LoadPageDataAsync(id.Value);
         }
 
+        public async Task<IActionResult> OnPostSaveNotesAsync(int id)
+        {
+            var request = await _requestRepo.GetRequestByIdAsync(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            request.AnalysisNotes = AnalysisNotes;
+            await _requestRepo.UpdateAsync(request);
+
+            TempData["SuccessMessage"] = "Anotações da análise salvas com sucesso!";
+            return RedirectToPage(new { id });
+        }
+
         public async Task<IActionResult> OnPostScheduleAsync(int tattooRequestId, DateTime scheduleStart, int durationHours)
         {
             var tattooRequest = await _requestRepo.GetRequestByIdAsync(tattooRequestId);
             if (tattooRequest == null)
             {
-                TempData["ErrorMessage"] = "Solicita��o n�o encontrada.";
+                TempData["ErrorMessage"] = "Solicitação não encontrada.";
                 return RedirectToPage("./Index");
             }
 
             if (await _appointmentRepo.ExistsByTattooRequestIdAsync(tattooRequestId))
             {
-                TempData["ErrorMessage"] = "Esta solicita��o j� possui um agendamento.";
+                TempData["ErrorMessage"] = "Esta solicitação já possui um agendamento.";
                 return RedirectToPage(new { id = tattooRequestId });
             }
 
             await CreateNewAppointment(tattooRequest, scheduleStart, durationHours);
-            TempData["SuccessMessage"] = "Sess�o agendada com sucesso!";
+            TempData["SuccessMessage"] = "Sessão agendada com sucesso!";
             return RedirectToPage(new { id = tattooRequestId });
         }
 
         public async Task<IActionResult> OnPostMarkAsAnalyzingAsync(int requestId)
         {
             await _requestRepo.UpdateStatusAsync(requestId, RequestStatus.EmAnalise);
-            TempData["SuccessMessage"] = "Status alterado para 'Em An�lise'.";
+            TempData["SuccessMessage"] = "Status alterado para 'Em Análise'.";
             return RedirectToPage(new { id = requestId });
+        }
+
+        public async Task<IActionResult> OnPostConvertToRequestAsync(int id)
+        {
+            var request = await _requestRepo.GetRequestByIdAsync(id);
+            if (request == null)
+            {
+                TempData["ErrorMessage"] = "Solicitação não encontrada.";
+                return RedirectToPage("./Index");
+            }
+
+            await _requestRepo.UpdateStatusAsync(id, RequestStatus.NovaSolicitacao);
+
+            TempData["SuccessMessage"] = $"A solicitação de '{request.User?.FullName}' foi movida para 'Nova Solicitação' e está pronta para o fluxo padrão.";
+            return RedirectToPage("/Admin/Requests/Index");
         }
 
         public async Task<IActionResult> OnPostCreateQuoteAsync(int requestId)
@@ -74,7 +109,7 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
 
             await _requestRepo.UpdateStatusAsync(requestId, RequestStatus.OrcamentoEnviado);
 
-            TempData["SuccessMessage"] = "Or�amento criado e enviado com sucesso!";
+            TempData["SuccessMessage"] = "Orçamento criado e enviado com sucesso!";
             return RedirectToPage(new { id = requestId });
         }
 
@@ -82,7 +117,7 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
         {
             if (input == null || string.IsNullOrWhiteSpace(input.Message))
             {
-                return BadRequest(new { message = "A mensagem n�o pode estar vazia." });
+                return BadRequest(new { message = "A mensagem não pode estar vazia." });
             }
 
             var newChatMessage = new ChatMessage
@@ -112,8 +147,19 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             }
 
             TattooRequest = request;
+            AnalysisNotes = request.AnalysisNotes;
             HasExistingAppointment = request.Appointment != null;
             NewQuote.ExpiryDate = DateTime.Today.AddDays(7);
+
+            TextAnswers = request.Answers
+                .Where(a => a.FormField?.FieldType != FormFieldType.UploadArquivo)
+                .OrderBy(a => a.FormField?.Order)
+                .ToList();
+
+            ImageAnswers = request.Answers
+                .Where(a => a.FormField?.FieldType == FormFieldType.UploadArquivo)
+                .ToList();
+
             return Page();
         }
 

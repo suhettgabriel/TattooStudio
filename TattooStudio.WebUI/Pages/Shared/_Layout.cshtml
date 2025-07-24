@@ -16,7 +16,7 @@
     <header>
         <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Home</a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index">Tattoo Studio</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -33,22 +33,20 @@
                             <a class="nav-link" asp-area="" asp-page="/Admin/Clients/Index">Clientes</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Admin/WaitingList/Index">Lista de Espera</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-page="/Admin/Calendar/Index">Calendário</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/Studios/Index">Estúdios</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/Pricing/Index">Preços</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/Gallery/Index">Gerenciar Galeria</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/FormFields/Index">Gerenciar Formulário</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Admin/Settings/Index">Configurações</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Configurações</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" asp-page="/Admin/Settings/Index">Gerenciar Agenda</a>
+                                <a class="dropdown-item" asp-page="/Admin/FormFields/Index">Gerenciar Formulário</a>
+                                <a class="dropdown-item" asp-page="/Admin/Gallery/Index">Gerenciar Galeria</a>
+                                <a class="dropdown-item" asp-page="/Admin/Pricing/Index">Parametrização de Preços</a>
+                                <a class="dropdown-item" asp-page="/Admin/Studios/Index">Estúdios</a>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -78,25 +76,21 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
-        // Script para carrossel com múltiplos itens
         const multipleItemCarousel = document.querySelector('#tattooCarousel');
         if (window.matchMedia("(min-width:768px)").matches && multipleItemCarousel) {
             const carousel = new bootstrap.Carousel(multipleItemCarousel, {
                 interval: false,
                 wrap: false
             });
-
             var carouselWidth = multipleItemCarousel.querySelector('.carousel-inner').scrollWidth;
             var cardWidth = multipleItemCarousel.querySelector('.carousel-item').offsetWidth;
             var scrollPosition = 0;
-
             multipleItemCarousel.querySelector('.carousel-control-next').addEventListener('click', function () {
                 if (scrollPosition < (carouselWidth - (cardWidth * 3))) {
                     scrollPosition += cardWidth;
                     multipleItemCarousel.querySelector('.carousel-inner').scroll({ left: scrollPosition, behavior: 'smooth' });
                 }
             });
-
             multipleItemCarousel.querySelector('.carousel-control-prev').addEventListener('click', function () {
                 if (scrollPosition > 0) {
                     scrollPosition -= cardWidth;

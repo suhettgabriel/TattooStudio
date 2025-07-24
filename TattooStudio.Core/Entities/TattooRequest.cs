@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using TattooStudio.Core.Enums;
 
 namespace TattooStudio.Core.Entities
@@ -17,7 +18,16 @@ namespace TattooStudio.Core.Entities
         public Studio? Studio { get; set; }
 
         public RequestStatus Status { get; set; } = RequestStatus.NovaSolicitacao;
+        
+        [Display(Name = "Anotações da Análise")]
+        public string? AnalysisNotes { get; set; }
 
+        [Display(Name = "Tamanho Aproximado (cm)")]
+        public int? EstimatedSize { get; set; }
+
+        [Display(Name = "Estimativa Inicial (R$)")]
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? InitialEstimate { get; set; }
         public DateTime SubmissionDate { get; set; } = DateTime.Now;
 
         public ICollection<TattooRequestAnswer> Answers { get; set; } = new List<TattooRequestAnswer>();

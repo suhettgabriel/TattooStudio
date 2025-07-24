@@ -20,22 +20,24 @@ namespace TattooStudio.Infrastructure.Services
                 return string.Empty;
             }
 
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", subfolder);
-            if (!Directory.Exists(uploadsFolder))
+            var uploadsRootFolder = Path.Combine(_env.WebRootPath, "uploads");
+            var targetFolder = Path.Combine(uploadsRootFolder, subfolder);
+
+            if (!Directory.Exists(targetFolder))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                Directory.CreateDirectory(targetFolder);
             }
 
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(targetFolder, uniqueFileName);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
 
-            var fileUrl = $"/uploads/{subfolder}/{uniqueFileName}";
-            return fileUrl;
+            var fileUrl = $"uploads/{subfolder}/{uniqueFileName}";
+            return fileUrl.Replace('\\', '/');
         }
     }
 }

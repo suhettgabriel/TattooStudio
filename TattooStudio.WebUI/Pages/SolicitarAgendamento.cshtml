@@ -16,13 +16,8 @@
                 <h4 class="alert-heading">Agenda Fechada!</h4>
                 <p>No momento, não estamos aceitando novas solicitações de agendamento. A agenda para o próximo semestre abrirá em breve.</p>
                 <hr>
-                <p class="mb-0">Deixe seu e-mail para ser notificado quando a agenda abrir.</p>
-            </div>
-        }
-        else if (!Model.FormFields.Any())
-        {
-            <div class="alert alert-warning" role="alert">
-                O formulário de agendamento está temporariamente indisponível. Por favor, tente novamente mais tarde.
+                <p class="mb-0">Para ter prioridade na próxima abertura, garanta seu lugar na nossa lista de espera.</p>
+                <a asp-page="/WaitingList" class="btn btn-warning btn-lg mt-3">Entrar na Lista de Espera</a>
             </div>
         }
         else
@@ -32,6 +27,9 @@
 
             <form method="post" enctype="multipart/form-data" class="mt-4">
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="Input.EstimatedSize" id="hidden-tattoo-size" />
+                <input type="hidden" asp-for="Input.InitialEstimate" id="hidden-initial-estimate" />
 
                 <h4>Seus Dados</h4>
                 <div class="row">
@@ -64,14 +62,14 @@
                 <h4>Sobre a Tatuagem</h4>
 
                 <div class="mb-3">
-                    <label class="form-label">Tamanho Aproximado (em cm)</label>
+                    <label class="form-label fw-bold">Tamanho Aproximado (em cm)</label>
                     <input type="number" id="tattoo-size" class="form-control" placeholder="Informe a maior medida, ex: 15" />
                 </div>
 
                 <div class="mb-4 p-3 border rounded bg-light text-center">
-                    <h5>Estimativa de Valor</h5>
-                    <h3 id="price-estimate" class="font-weight-bold text-primary">R$ 0,00</h3>
-                    <small class="text-muted">Selecione o local e o tamanho para ver uma estimativa.</small>
+                    <h5 class="fw-normal">Estimativa de Valor Inicial</h5>
+                    <h3 id="price-estimate" class="fw-bold text-primary">Selecione o local e o tamanho</h3>
+                    <small class="text-muted">Este valor é uma estimativa inicial e pode variar após a análise do projeto.</small>
                 </div>
 
                 @foreach (var field in Model.FormFields)
@@ -81,14 +79,19 @@
 
                         @switch (field.FieldType)
                         {
-                            case FormFieldType.UploadArquivo:
-                                <input type="file" name="Input.FileAnswers[@field.Id]" class="form-control" />
+                            case FormFieldType.Estado:
+                                <select name="Input.Answers[@field.Id]" class="form-select form-field-estado">
+                                    <option value="">Selecione um Estado</option>
+                                </select>
                                 break;
-
+                            case FormFieldType.Cidade:
+                                <select name="Input.Answers[@field.Id]" class="form-select form-field-cidade" disabled>
+                                    <option value="">Primeiro, selecione um Estado</option>
+                                </select>
+                                break;
                             case FormFieldType.TextoLongo:
                                 <textarea name="Input.Answers[@field.Id]" class="form-control" rows="4"></textarea>
                                 break;
-
                             case FormFieldType.OpcaoUnica:
                                 <select name="Input.Answers[@field.Id]" class="form-select">
                                     <option value="">Selecione...</option>
@@ -98,15 +101,12 @@
                                     }
                                 </select>
                                 break;
-
                             case FormFieldType.Numero:
                                 <input type="number" name="Input.Answers[@field.Id]" class="form-control" />
                                 break;
-
                             case FormFieldType.Data:
                                 <input type="date" name="Input.Answers[@field.Id]" class="form-control" />
                                 break;
-
                             case FormFieldType.AvatarInterativo:
                                 <div class="avatar-container p-3 border rounded">
                                     <div class="avatar-controls">
@@ -120,7 +120,10 @@
                                         <g id="avatar-front">
                                             <path class="body-part" data-name="Cabeça (Frente)" d="M125 60 A 25 30 0 1 1 175 60 A 25 30 0 1 1 125 60 Z" />
                                             <path class="body-part" data-name="Pescoço (Frente)" d="M140 90 H 160 V 105 H 140 Z" />
-                                            <path class="body-part" data-name="Tronco (Frente)" d="M115 105 H 185 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Peito Esquerdo" d="M115 105 H 150 V 170 H 115 Z" />
+                                            <path class="body-part" data-name="Peito Direito" d="M150 105 H 185 V 170 H 150 Z" />
+                                            <path class="body-part" data-name="Costela Esquerda" d="M115 170 H 150 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Costela Direita" d="M150 170 H 185 V 235 H 150 Z" />
                                             <path class="body-part" data-name="Braço Esquerdo" d="M90 115 L 115 115 L 115 220 L 90 220 Z" />
                                             <path class="body-part" data-name="Antebraço Esquerdo" d="M90 220 L 115 220 L 110 320 L 85 320 Z" />
                                             <path class="body-part" data-name="Mão Esquerda" d="M80 320 H 110 V 340 H 80 Z" />
@@ -135,7 +138,10 @@
                                         <g id="avatar-back" style="display: none;">
                                             <path class="body-part" data-name="Cabeça (Costas)" d="M125 60 A 25 30 0 1 1 175 60 A 25 30 0 1 1 125 60 Z" />
                                             <path class="body-part" data-name="Nuca" d="M140 90 H 160 V 105 H 140 Z" />
-                                            <path class="body-part" data-name="Costas" d="M115 105 H 185 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Costas (Ombro) Esquerdo" d="M115 105 H 150 V 170 H 115 Z" />
+                                            <path class="body-part" data-name="Costas (Ombro) Direito" d="M150 105 H 185 V 170 H 150 Z" />
+                                            <path class="body-part" data-name="Costas (Cintura) Esquerda" d="M115 170 H 150 V 235 H 115 Z" />
+                                            <path class="body-part" data-name="Costas (Cintura) Direita" d="M150 170 H 185 V 235 H 150 Z" />
                                             <path class="body-part" data-name="Braço Esquerdo (Costas)" d="M90 115 L 115 115 L 115 220 L 90 220 Z" />
                                             <path class="body-part" data-name="Antebraço Esquerdo (Costas)" d="M90 220 L 115 220 L 110 320 L 85 320 Z" />
                                             <path class="body-part" data-name="Mão Esquerda (Costas)" d="M80 320 H 110 V 340 H 80 Z" />
@@ -155,13 +161,22 @@
                                     <input type="hidden" name="Input.Answers[@field.Id]" id="hidden-input-@field.Id" />
                                 </div>
                                 break;
-
                             default:
                                 <input type="text" name="Input.Answers[@field.Id]" class="form-control" />
                                 break;
                         }
                     </div>
                 }
+
+                <div class="mb-3">
+                    <label asp-for="Input.ReferenceImage" class="form-label"></label>
+                    <input asp-for="Input.ReferenceImage" class="form-control" accept=".png,.jpg,.jpeg" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.BodyPartPhoto" class="form-label"></label>
+                    <input asp-for="Input.BodyPartPhoto" class="form-control" accept=".png,.jpg,.jpeg" />
+                </div>
 
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitação</button>
@@ -180,21 +195,19 @@
             initializePhoneMask();
             initializeAvatar();
             initializePriceCalculator();
+            initializeDynamicFormLocationFields();
         });
 
         function initializePhoneMask() {
             const phoneElement = document.querySelector('input[name="Input.ClientInfo.PhoneNumber"]');
             if (phoneElement) {
-                const phoneMask = IMask(phoneElement, {
-                    mask: '(00) 00000-0000'
-                });
+                IMask(phoneElement, { mask: '(00) 00000-0000' });
             }
         }
 
         function initializeAvatar() {
             const avatarContainer = document.querySelector('.avatar-container');
             if (!avatarContainer) return;
-
             const rotateBtn = document.getElementById('rotate-avatar-btn');
             const rotateBtnText = document.getElementById('rotate-avatar-text');
             const avatarFront = document.getElementById('avatar-front');
@@ -202,7 +215,6 @@
             const bodyParts = avatarContainer.querySelectorAll('.body-part');
             const displayListDiv = avatarContainer.querySelector('div[id^="selected-parts-list-"]');
             const hiddenInput = avatarContainer.querySelector('input[id^="hidden-input-"]');
-
             let selectedParts = [];
 
             rotateBtn.addEventListener('click', function() {
@@ -221,24 +233,19 @@
             bodyParts.forEach(part => {
                 part.addEventListener('click', function() {
                     const partName = this.getAttribute('data-name');
-
                     this.classList.toggle('selected');
-
                     if (selectedParts.includes(partName)) {
                         selectedParts = selectedParts.filter(p => p !== partName);
                     } else {
                         selectedParts.push(partName);
                     }
-
                     updateSelectedParts();
                 });
             });
 
             function updateSelectedParts() {
                 if (!displayListDiv || !hiddenInput) return;
-
                 displayListDiv.innerHTML = '';
-
                 if (selectedParts.length === 0) {
                     displayListDiv.innerHTML = '<span class="badge bg-secondary">Nenhum</span>';
                 } else {
@@ -249,7 +256,6 @@
                         displayListDiv.appendChild(badge);
                     });
                 }
-
                 hiddenInput.value = selectedParts.join(', ');
             }
         }
@@ -257,7 +263,6 @@
         function initializePriceCalculator() {
             const sizeInput = document.getElementById('tattoo-size');
             const avatarParts = document.querySelectorAll('.avatar-container .body-part');
-
             sizeInput.addEventListener('input', updatePrice);
             avatarParts.forEach(part => part.addEventListener('click', () => setTimeout(updatePrice, 100)));
         }
@@ -266,16 +271,18 @@
             const sizeInput = document.getElementById('tattoo-size');
             const hiddenAvatarInput = document.querySelector('input[id^="hidden-input-"]');
             const priceDisplay = document.getElementById('price-estimate');
+            const hiddenSizeInput = document.getElementById('hidden-tattoo-size');
+            const hiddenEstimateInput = document.getElementById('hidden-initial-estimate');
 
             const size = parseInt(sizeInput.value) || 0;
-            const selectedParts = hiddenAvatarInput.value.split(', ').filter(p => p);
+            const selectedParts = hiddenAvatarInput ? hiddenAvatarInput.value.split(', ').filter(p => p) : [];
 
+            hiddenSizeInput.value = size;
             let totalEstimate = 0;
             let ruleFound = false;
 
             if (size > 0 && selectedParts.length > 0) {
                 const mainPart = selectedParts[0];
-
                 const matchingRule = pricingRules.find(rule =>
                     rule.BodyPart.toLowerCase() === mainPart.toLowerCase() &&
                     size >= rule.MinSize &&
@@ -288,13 +295,51 @@
                 }
             }
 
+            hiddenEstimateInput.value = totalEstimate;
+
             if (ruleFound) {
                 priceDisplay.textContent = totalEstimate.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             } else if (size > 0 && selectedParts.length > 0) {
-                priceDisplay.textContent = "Consulte";
+                priceDisplay.textContent = "Valor a consultar";
             } else {
-                 priceDisplay.textContent = "R$ 0,00";
+                priceDisplay.textContent = "Selecione o local e o tamanho";
             }
+        }
+
+        function initializeDynamicFormLocationFields() {
+            const stateSelect = document.querySelector('.form-field-estado');
+            const citySelect = document.querySelector('.form-field-cidade');
+
+            if (!stateSelect || !citySelect) return;
+
+            fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+                .then(res => res.json())
+                .then(states => {
+                    states.forEach(state => {
+                        stateSelect.innerHTML += `<option value="${state.sigla}">${state.nome}</option>`;
+                    });
+                });
+
+            stateSelect.addEventListener('change', function() {
+                const stateUF = this.value;
+                citySelect.innerHTML = '<option value="">Carregando...</option>';
+                citySelect.disabled = true;
+
+                if (!stateUF) {
+                    citySelect.innerHTML = '<option value="">Primeiro, selecione um Estado</option>';
+                    return;
+                }
+
+                fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${stateUF}/municipios?orderBy=nome`)
+                    .then(res => res.json())
+                    .then(cities => {
+                        citySelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                        cities.forEach(city => {
+                            citySelect.innerHTML += `<option value="${city.nome}">${city.nome}</option>`;
+                        });
+                        citySelect.disabled = false;
+                    });
+            });
         }
     </script>
 }
