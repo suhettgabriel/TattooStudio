@@ -56,7 +56,6 @@ namespace TattooStudio.WebUI.Pages
             }
 
             await SaveRequestAsync();
-
             TempData["SuccessMessage"] = "Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.";
             return RedirectToPage("./Index");
         }
@@ -90,16 +89,28 @@ namespace TattooStudio.WebUI.Pages
                 InitialEstimate = Input.InitialEstimate
             };
 
-            if (Input.ReferenceImage != null)
+            var ideaField = await GetOrCreateUploadField("Envie fotos da sua ideia");
+            var bodyField = await GetOrCreateUploadField("Envie uma foto do local do corpo");
+
+            if (Input.ReferenceImages != null && Input.ReferenceImages.Any())
             {
-                var fileUrl = await _fileStorage.SaveFileAsync(Input.ReferenceImage, "request_files");
-                newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = 1, Value = fileUrl }); // Mapeamento hipotético para "Imagem da Ideia"
+                foreach (var file in Input.ReferenceImages)
+                {
+                    var fileUrl = await _fileStorage.SaveFileAsync(file, "request_files");
+                    if (!string.IsNullOrEmpty(fileUrl))
+                    {
+                        newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = ideaField.Id, Value = fileUrl });
+                    }
+                }
             }
 
             if (Input.BodyPartPhoto != null)
             {
                 var fileUrl = await _fileStorage.SaveFileAsync(Input.BodyPartPhoto, "request_files");
-                newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = 2, Value = fileUrl }); // Mapeamento hipotético para "Foto do Local"
+                if (!string.IsNullOrEmpty(fileUrl))
+                {
+                    newRequest.Answers.Add(new TattooRequestAnswer { FormFieldId = bodyField.Id, Value = fileUrl });
+                }
             }
 
             foreach (var answer in Input.Answers)
@@ -112,6 +123,25 @@ namespace TattooStudio.WebUI.Pages
 
             await _requestRepo.CreateRequestAsync(newRequest);
         }
+
+        private async Task<FormField> GetOrCreateUploadField(string label)
+        {
+            var allFields = await _formFieldRepo.GetAllAsync();
+            var field = allFields.FirstOrDefault(f => f.Label == label && f.FieldType == FormFieldType.UploadArquivo);
+
+            if (field == null)
+            {
+                field = new FormField
+                {
+                    Label = label,
+                    FieldType = FormFieldType.UploadArquivo,
+                    IsRequired = false,
+                    Order = 999
+                };
+                await _formFieldRepo.AddAsync(field);
+            }
+            return field;
+        }
     }
 
     public class InputModel
@@ -121,8 +151,8 @@ namespace TattooStudio.WebUI.Pages
         public int? EstimatedSize { get; set; }
         public decimal? InitialEstimate { get; set; }
 
-        [Display(Name = "Envie uma foto da sua ideia")]
-        public IFormFile? ReferenceImage { get; set; }
+        [Display(Name = "Envie fotos da sua ideia (até 5 imagens)")]
+        public List<IFormFile>? ReferenceImages { get; set; }
 
         [Display(Name = "Envie uma foto do local do corpo")]
         public IFormFile? BodyPartPhoto { get; set; }
@@ -148,6 +178,7 @@ namespace TattooStudio.WebUI.Pages
 
         [Display(Name = "Local de Atendimento")]
         [Required(ErrorMessage = "Por favor, escolha um estúdio.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Por favor, escolha um estúdio válido.")]
         public int StudioId { get; set; }
     }
 }

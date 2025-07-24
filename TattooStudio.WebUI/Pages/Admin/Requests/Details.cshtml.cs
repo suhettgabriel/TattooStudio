@@ -151,18 +151,17 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             HasExistingAppointment = request.Appointment != null;
             NewQuote.ExpiryDate = DateTime.Today.AddDays(7);
 
+            ImageAnswers = request.Answers
+                .Where(a => a.FormField?.FieldType == FormFieldType.UploadArquivo)
+                .ToList();
+
             TextAnswers = request.Answers
                 .Where(a => a.FormField?.FieldType != FormFieldType.UploadArquivo)
                 .OrderBy(a => a.FormField?.Order)
                 .ToList();
 
-            ImageAnswers = request.Answers
-                .Where(a => a.FormField?.FieldType == FormFieldType.UploadArquivo)
-                .ToList();
-
             return Page();
         }
-
         private async Task CreateNewAppointment(TattooRequest request, DateTime start, int duration)
         {
             var newAppointment = new Appointment

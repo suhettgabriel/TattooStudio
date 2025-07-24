@@ -19,17 +19,16 @@ namespace TattooStudio.Core.Entities
         [Display(Name = "Lista de Opções (Dropdown)")]
         OpcaoUnica,
 
-        [Display(Name = "Upload de Arquivo")]
-        UploadArquivo,
-
         [Display(Name = "Avatar Interativo")]
         AvatarInterativo,
 
-        [Display(Name = "Seleção de Estado (Brasil)")] 
+        [Display(Name = "Seleção de Estado (Brasil)")]
         Estado,
 
-        [Display(Name = "Seleção de Cidade (Brasil)")] 
-        Cidade
+        [Display(Name = "Seleção de Cidade (Brasil)")]
+        Cidade,
+
+        UploadArquivo
     }
 
     public class FormField

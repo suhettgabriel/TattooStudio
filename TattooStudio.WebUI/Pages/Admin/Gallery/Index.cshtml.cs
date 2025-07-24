@@ -40,6 +40,12 @@ namespace TattooStudio.WebUI.Pages.Admin.Gallery
 
             var imageUrl = await _fileStorage.SaveFileAsync(UploadedImage, "gallery");
 
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                TempData["ErrorMessage"] = "Falha ao salvar a imagem.";
+                return RedirectToPage();
+            }
+
             var newImage = new GalleryImage
             {
                 ImageUrl = imageUrl,
@@ -53,8 +59,18 @@ namespace TattooStudio.WebUI.Pages.Admin.Gallery
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
-            await _galleryRepo.DeleteAsync(id);
-            TempData["SuccessMessage"] = "Imagem removida da galeria com sucesso!";
+            var imageToDelete = await _galleryRepo.GetByIdAsync(id);
+            if (imageToDelete != null)
+            {
+                _fileStorage.DeleteFile(imageToDelete.ImageUrl, "gallery");
+                await _galleryRepo.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Imagem removida da galeria com sucesso!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Imagem não encontrada.";
+            }
+
             return RedirectToPage();
         }
     }

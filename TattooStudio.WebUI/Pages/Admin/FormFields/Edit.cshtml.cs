@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
-using TattooStudio.WebUI.Helpers;
 
 namespace TattooStudio.WebUI.Pages.Admin.FormFields
 {
@@ -41,19 +44,21 @@ namespace TattooStudio.WebUI.Pages.Admin.FormFields
                 return Page();
             }
 
-            await UpdateFormFieldAsync();
+            await _repository.UpdateAsync(FormField);
             TempData["SuccessMessage"] = "Campo do formulário atualizado com sucesso!";
             return RedirectToPage("./Index");
         }
 
         private void PopulateSelectLists()
         {
-            FieldTypeOptions = EnumHelpers.ToSelectList(FormField.FieldType);
-        }
-
-        private async Task UpdateFormFieldAsync()
-        {
-            await _repository.UpdateAsync(FormField);
+            var fieldTypes = from FormFieldType e in Enum.GetValues(typeof(FormFieldType))
+                             where e != FormFieldType.UploadArquivo
+                             select new
+                             {
+                                 Id = e,
+                                 Name = e.GetType().GetMember(e.ToString()).First().GetCustomAttribute<DisplayAttribute>()?.GetName() ?? e.ToString()
+                             };
+            FieldTypeOptions = new SelectList(fieldTypes, "Id", "Name", FormField.FieldType);
         }
     }
 }

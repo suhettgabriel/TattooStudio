@@ -39,5 +39,18 @@ namespace TattooStudio.Infrastructure.Services
             var fileUrl = $"uploads/{subfolder}/{uniqueFileName}";
             return fileUrl.Replace('\\', '/');
         }
+
+        public void DeleteFile(string fileUrl, string subfolder)
+        {
+            if (string.IsNullOrEmpty(fileUrl)) return;
+
+            var fileName = Path.GetFileName(fileUrl);
+            var filePath = Path.Combine(_env.WebRootPath, "uploads", subfolder, fileName);
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
     }
 }

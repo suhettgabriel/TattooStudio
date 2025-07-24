@@ -46,8 +46,8 @@
                     @foreach (var image in Model.Images)
                     {
                         <div class="col-md-6 col-lg-4">
-                            <div class="card">
-                                <img src="@image.ImageUrl" class="card-img-top" style="height: 150px; object-fit: cover;" alt="@image.Description">
+                            <div class="card">                                
+                                <img src="~/@image.ImageUrl" class="card-img-top" style="height: 150px; object-fit: cover;" alt="@image.Description">
                                 <div class="card-body p-2">
                                     <p class="card-text small text-truncate">@image.Description</p>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@image.Id" class="d-inline delete-form">

@@ -7,6 +7,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="wwwroot\uploads\gallery\0ea9838e-de0e-4d25-8318-77eebef34d89.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\27e38097-b731-424f-bc61-24d938e92a2d.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\35e204bd-3e81-4ec4-bdc0-bdbc9dab02d8.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\3cb12f14-9b2e-4cbc-9539-b4f7cdcd94eb.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\6c26832c-6c7b-4300-b058-f0aa45af3e64.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\70250118-6397-4f45-877e-8ea9169949fb.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\8ca95845-3d9a-4440-8f9f-0ee215f291aa.jpeg" />
+	  <Content Remove="wwwroot\uploads\gallery\965a2a39-ec1c-4885-b1b5-4a721d2fd660.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\96add0b5-4ff4-447d-9548-32379bdb2967.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\a42bb91f-8af7-4818-8414-109d69327732.jpg" />
+	  <Content Remove="wwwroot\uploads\gallery\aef7cfcd-f06d-438e-8096-8fe1065f9fb9.png" />
+	  <Content Remove="wwwroot\uploads\gallery\b9e06d56-d66a-4923-8568-b7b25d71eba8.jpeg" />
+	  <Content Remove="wwwroot\uploads\gallery\bddab529-5b1d-40a5-bc37-cb9f2e3eb920.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,6 +35,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="wwwroot\uploads\gallery\" />
+		<Folder Include="wwwroot\uploads\request_files\" />
 		<Folder Include="wwwroot\uploads\request_files\" />
 	</ItemGroup>
 
