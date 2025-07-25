@@ -18,7 +18,7 @@ namespace TattooStudio.Core.Entities
         public Studio? Studio { get; set; }
 
         public RequestStatus Status { get; set; } = RequestStatus.NovaSolicitacao;
-        
+
         [Display(Name = "Anotações da Análise")]
         public string? AnalysisNotes { get; set; }
 
@@ -28,6 +28,16 @@ namespace TattooStudio.Core.Entities
         [Display(Name = "Estimativa Inicial (R$)")]
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? InitialEstimate { get; set; }
+
+        [Display(Name = "Imagens de Referência")]
+        public string? ReferenceImageUrls { get; set; }
+
+        [Display(Name = "Foto do Local do Corpo")]
+        public string? BodyPartPhotoUrl { get; set; }
+
+        public string? MagicLinkToken { get; set; }
+        public DateTime? MagicLinkTokenExpiration { get; set; }
+
         public DateTime SubmissionDate { get; set; } = DateTime.Now;
 
         public ICollection<TattooRequestAnswer> Answers { get; set; } = new List<TattooRequestAnswer>();

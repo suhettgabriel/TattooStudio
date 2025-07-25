@@ -162,3 +162,56 @@ main {
 	margin: 0 auto;
 	text-align: center;
 }
+.timeline {
+	list-style-type: none;
+	position: relative;
+	padding-left: 1.5rem;
+}
+
+	.timeline:before {
+		content: ' ';
+		background: #d4d9df;
+		display: inline-block;
+		position: absolute;
+		left: 20px;
+		width: 2px;
+		height: 100%;
+		z-index: 400;
+	}
+
+.timeline-item {
+	margin: 20px 0;
+}
+
+.timeline-marker {
+	position: absolute;
+	left: 11px;
+	background-color: #d4d9df;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	z-index: 400;
+}
+
+.timeline-item.complete .timeline-marker {
+	background-color: var(--bs-primary);
+	border: 3px solid var(--bs-light);
+}
+
+.timeline-content {
+	padding-left: 30px;
+}
+
+.timeline-title {
+	margin-bottom: 0.25rem;
+	font-weight: 600;
+}
+
+.timeline-item.complete .timeline-title {
+	color: var(--bs-primary);
+}
+
+.timeline-content p {
+	color: #6c757d;
+	font-size: 0.9rem;
+}

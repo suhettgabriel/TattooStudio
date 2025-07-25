@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using System;
 using TattooStudio.Application.Interfaces;
@@ -23,8 +24,20 @@ builder.Services.AddScoped<IPricingRuleRepository, PricingRuleRepository>();
 builder.Services.AddScoped<IGalleryImageRepository, GalleryImageRepository>();
 builder.Services.AddScoped<IFaqRepository, FaqRepository>();
 builder.Services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.AddRazorPages();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = true;
+        options.LoginPath = "/Portal/Login";
+    });
+
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/Portal/Dashboard");
+});
 
 var app = builder.Build();
 
@@ -39,6 +52,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();

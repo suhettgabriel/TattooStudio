@@ -1,0 +1,29 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Portal.LoginModel
+@{
+    ViewData["Title"] = "Acesso ao Portal do Cliente";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="text-center mb-4">
+            <h1 class="display-5">@ViewData["Title"]</h1>
+            <p class="lead text-muted">Digite seu e-mail para receber um link de acesso seguro.</p>
+        </div>
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="seuemail@exemplo.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Enviar Link Mágico</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
