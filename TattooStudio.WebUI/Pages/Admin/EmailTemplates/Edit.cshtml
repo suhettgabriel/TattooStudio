@@ -1,0 +1,61 @@
+﻿@page "{type}"
+@model TattooStudio.WebUI.Pages.Admin.EmailTemplates.EditModel
+@using TattooStudio.WebUI.Helpers
+@{
+    ViewData["Title"] = $"Editar Template: {Model.Template.Type.GetDisplayName()}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<form method="post">
+    <div class="card shadow">
+        <div class="card-body">
+            <input type="hidden" asp-for="Template.Id" />
+            <input type="hidden" asp-for="Template.Type" />
+            <input type="hidden" asp-for="Template.Placeholders" />
+
+            <div class="mb-3">
+                <label asp-for="Template.Subject" class="form-label"></label>
+                <input asp-for="Template.Subject" class="form-control" />
+                <span asp-validation-for="Template.Subject" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Template.Body" class="form-label"></label>
+                <textarea asp-for="Template.Body" id="emailBodyEditor" class="form-control" rows="15"></textarea>
+                <span asp-validation-for="Template.Body" class="text-danger"></span>
+            </div>
+
+            <div class="alert alert-secondary">
+                <strong>Variáveis que você pode usar neste template:</strong>
+                <p class="mb-0">@Model.Template.Placeholders</p>
+                <small>Copie e cole as variáveis (incluindo as chaves `{{ }}`) no texto acima.</small>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Salvar Template</button>
+                <a asp-page="./Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/amwl8n3svp529p4mvy5vodle397ddqbabv4a4w8rtl7xiqw3/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            tinymce.init({
+                selector: '#emailBodyEditor',
+                language: 'pt_BR',
+                plugins: 'autolink lists link image charmap searchreplace wordcount code',
+                toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist outdent indent | link | removeformat',
+                height: 400,
+                menubar: false,
+                statusbar: false,
+                content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; }'
+            });
+        });
+    </script>
+}

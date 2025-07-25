@@ -21,5 +21,6 @@ namespace TattooStudio.Infrastructure.Data
         public DbSet<PricingRule> PricingRules { get; set; }
         public DbSet<GalleryImage> GalleryImages { get; set; }
         public DbSet<FaqItem> FaqItems { get; set; }
+        public DbSet<EmailTemplate> EmailTemplates { get; set; }
     }
 }
