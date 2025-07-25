@@ -1,6 +1,7 @@
 ﻿@page
 @model TattooStudio.WebUI.Pages.Portal.DashboardModel
 @using TattooStudio.Core.Enums
+@using TattooStudio.Core.Entities
 @using TattooStudio.WebUI.Helpers
 @{
     ViewData["Title"] = "Seu Portal";
@@ -13,6 +14,35 @@
             <h1 class="display-5">Olá, @Model.TattooRequest.User?.FullName!</h1>
             <p class="lead text-muted">Bem-vindo(a) ao seu portal. Aqui você pode acompanhar todo o processo da sua solicitação.</p>
         </div>
+
+        @if (Model.PendingQuote != null)
+        {
+            <div class="card shadow mb-5 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Ação Necessária: Orçamento Pendente</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Detalhes do Orçamento</h5>
+                    <p class="card-text">@Model.PendingQuote.Description</p>
+                    <dl class="row">
+                        <dt class="col-sm-4">Valor Total:</dt>
+                        <dd class="col-sm-8">@Model.PendingQuote.Amount.ToString("C")</dd>
+                        <dt class="col-sm-4">Valor do Sinal:</dt>
+                        <dd class="col-sm-8">@Model.PendingQuote.DepositAmount.ToString("C")</dd>
+                        <dt class="col-sm-4">Válido até:</dt>
+                        <dd class="col-sm-8">@Model.PendingQuote.ExpiryDate.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <form method="post" asp-page-handler="DeclineQuote" asp-route-requestId="@Model.TattooRequest.Id" asp-route-quoteId="@Model.PendingQuote.Id" class="decline-form">
+                            <button type="submit" class="btn btn-outline-danger">Recusar Orçamento</button>
+                        </form>
+                        <form method="post" asp-page-handler="ApproveQuote" asp-route-requestId="@Model.TattooRequest.Id" asp-route-quoteId="@Model.PendingQuote.Id">
+                            <button type="submit" class="btn btn-success">Aprovar e Seguir para Pagamento</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="row justify-content-center">
             <div class="col-lg-10">
@@ -36,14 +66,14 @@
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h5 class="timeline-title">Orçamento Enviado</h5>
-                            <p>Seu orçamento foi enviado! Você poderá visualizá-lo e aprová-lo aqui no portal em breve.</p>
+                            <p>Seu orçamento foi enviado! Você pode visualizá-lo e aprová-lo aqui no portal.</p>
                         </div>
                     </li>
                     <li class="timeline-item @(Model.TattooRequest.Status >= RequestStatus.AguardandoSinal ? "complete" : "")">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h5 class="timeline-title">Aguardando Pagamento</h5>
-                            <p>Orçamento aprovado! Estamos aguardando o pagamento do sinal para confirmarmos o agendamento.</p>
+                            <p>Orçamento aprovado! O próximo passo é o pagamento do sinal para confirmarmos o agendamento.</p>
                         </div>
                     </li>
                     <li class="timeline-item @(Model.TattooRequest.Status >= RequestStatus.Agendado ? "complete" : "")">
@@ -57,4 +87,28 @@
             </div>
         </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.decline-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Você tem certeza?',
+                    text: "Ao recusar, sua solicitação será arquivada. Esta ação não pode ser desfeita.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sim, recusar orçamento',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 }
