@@ -62,7 +62,6 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             await _requestRepo.UpdateStatusAsync(model.RequestId, model.NewStatus);
             return new OkResult();
         }
-
         public async Task<IActionResult> OnPostDeleteRequestAsync(int id)
         {
             await _requestRepo.DeleteAsync(id);

@@ -124,6 +124,11 @@
                     <dl class="row mt-3">
                         <dt class="col-sm-4 col-lg-3">Nome do Cliente</dt>
                         <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.User?.FullName</dd>
+                        @if (Model.TattooRequest.Studio != null)
+                        {
+                            <dt class="col-sm-4 col-lg-3">Local de Atendimento</dt>
+                            <dd class="col-sm-8 col-lg-9">@Model.TattooRequest.Studio.City, @Model.TattooRequest.Studio.State</dd>
+                        }
                         @if (Model.TattooRequest.EstimatedSize.HasValue && Model.TattooRequest.EstimatedSize > 0)
                         {
                             <dt class="col-sm-4 col-lg-3">Tamanho Informado</dt>

@@ -28,8 +28,9 @@ namespace TattooStudio.Infrastructure.Repositories
         public async Task<IList<TattooRequest>> GetAllRequestsAsync(string? searchTerm, int? studioId, DateTime? startDate, DateTime? endDate)
         {
             var query = _context.TattooRequests
-                .Include(r => r.User)
-                .AsQueryable();
+                                .Include(r => r.User)
+                                .Include(r => r.Studio)
+                                .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
@@ -58,13 +59,14 @@ namespace TattooStudio.Infrastructure.Repositories
         public async Task<TattooRequest?> GetRequestByIdAsync(int requestId)
         {
             return await _context.TattooRequests
-                .Include(r => r.User)
-                .Include(r => r.Quotes)
-                .Include(r => r.ChatMessages)
-                .Include(r => r.Appointment)
-                .Include(r => r.Answers)
-                    .ThenInclude(a => a.FormField)
-                .FirstOrDefaultAsync(r => r.Id == requestId);
+                                 .Include(r => r.User)
+                                 .Include(r => r.Studio)
+                                 .Include(r => r.Quotes)
+                                 .Include(r => r.ChatMessages)
+                                 .Include(r => r.Appointment)
+                                 .Include(r => r.Answers)
+                                     .ThenInclude(a => a.FormField)
+                                 .FirstOrDefaultAsync(r => r.Id == requestId);
         }
 
         public async Task UpdateStatusAsync(int requestId, RequestStatus newStatus)
@@ -77,9 +79,9 @@ namespace TattooStudio.Infrastructure.Repositories
             }
         }
 
-        public async Task UpdateAsync(TattooRequest tattooRequest)
+        public async Task UpdateAsync(TattooRequest request)
         {
-            _context.TattooRequests.Update(tattooRequest);
+            _context.TattooRequests.Update(request);
             await _context.SaveChangesAsync();
         }
 

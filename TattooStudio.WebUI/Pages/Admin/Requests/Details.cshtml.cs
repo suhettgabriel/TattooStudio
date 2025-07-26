@@ -79,7 +79,6 @@ namespace TattooStudio.WebUI.Pages.Admin.Requests
             TempData["SuccessMessage"] = "Status alterado para 'Em Análise'.";
             return RedirectToPage(new { id = requestId });
         }
-
         public async Task<IActionResult> OnPostConvertToRequestAsync(int id)
         {
             var request = await _requestRepo.GetRequestByIdAsync(id);
