@@ -5,6 +5,7 @@ using TattooStudio.Application.Interfaces;
 using TattooStudio.Infrastructure.Data;
 using TattooStudio.Infrastructure.Repositories;
 using TattooStudio.Infrastructure.Services;
+using TattooStudio.WebUI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddScoped<IFaqRepository, FaqRepository>();
 builder.Services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IQuoteRepository, QuoteRepository>();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -57,5 +60,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

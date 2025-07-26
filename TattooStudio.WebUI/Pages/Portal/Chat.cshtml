@@ -1,0 +1,102 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Portal.ChatModel
+@{
+    ViewData["Title"] = "Chat com a Artista";
+}
+
+@if (Model.TattooRequest != null)
+{
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="display-5">@ViewData["Title"]</h1>
+            <p class="lead text-muted">Este é o seu canal de comunicação direto com a artista para alinhar os detalhes da sua tatuagem.</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <div id="chat-history-container" class="chat-history mb-4" style="max-height: 500px; overflow-y: auto;">
+                            @foreach (var message in Model.TattooRequest.ChatMessages.OrderBy(m => m.SentAt))
+                            {
+                                var isClient = message.Sender == "Client";
+                                var alignment = isClient ? "d-flex justify-content-end" : "d-flex justify-content-start";
+                                <div class="mb-3 @alignment">
+                                    <div class="p-3 rounded" style="max-width: 70%; background-color: @(isClient ? "#cfe2ff" : "#f8f9fa");">
+                                        <p class="mb-1">@message.Message</p>
+                                        <small class="text-muted d-block text-end">@message.SentAt.ToString("dd/MM/yy HH:mm")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <hr />
+                        <h5 class="mt-4">Enviar Nova Mensagem</h5>
+                        <form method="post">
+                            <div class="mb-3">
+                                <textarea asp-for="NewMessage" class="form-control" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                                <span asp-validation-for="NewMessage" class="text-danger"></span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-page="/Portal/Dashboard" class="btn btn-secondary">Voltar ao Dashboard</a>
+                                <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeRealTimeChat("Client");
+        });
+
+        function initializeRealTimeChat(sender) {
+            const requestId = @(Model.TattooRequest?.Id ?? 0);
+            if (requestId === 0) return;
+
+            const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+            const chatHistoryContainer = document.getElementById('chat-history-container');
+            const sendMessageBtn = document.querySelector('button[type="submit"]');
+            const newMessageText = document.getElementById('NewMessage');
+
+            connection.on("ReceiveMessage", function (receivedSender, message, sentAt) {
+                appendMessageToHistory(receivedSender, message, sentAt);
+            });
+
+            connection.start().then(function () {
+                connection.invoke("AddToGroup", requestId.toString()).catch(err => console.error(err.toString()));
+                sendMessageBtn.disabled = false;
+            }).catch(function (err) {
+                return console.error(err.toString());
+            });
+
+            sendMessageBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                const message = newMessageText.value;
+                if (message) {
+                    connection.invoke("SendMessage", requestId, sender, message).catch(err => console.error(err.toString()));
+                    newMessageText.value = "";
+                }
+            });
+
+            function appendMessageToHistory(msgSender, message, sentAt) {
+                const alignment = msgSender === sender ? "d-flex justify-content-end" : "d-flex justify-content-start";
+                const bgColor = msgSender === sender ? "#cfe2ff" : "#f8f9fa";
+
+                const messageWrapper = document.createElement('div');
+                messageWrapper.className = `mb-3 ${alignment}`;
+                messageWrapper.innerHTML = `
+                    <div class="p-3 rounded" style="max-width: 70%; background-color: ${bgColor};">
+                        <p class="mb-1">${message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                        <small class="text-muted d-block text-end">${sentAt}</small>
+                    </div>`;
+
+                chatHistoryContainer.appendChild(messageWrapper);
+                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+            }
+        }
+    </script>
+}

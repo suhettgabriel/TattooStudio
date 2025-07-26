@@ -270,7 +270,7 @@ else
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             initializeScheduling();
-            initializeChat();
+            initializeRealTimeChat("Admin");
         });
 
         function initializeScheduling() {
@@ -313,63 +313,46 @@ else
             });
         }
 
-        function initializeChat() {
-            const sendMessageBtn = document.getElementById('sendMessageBtn');
-            if (!sendMessageBtn) return;
-
-            const newMessageText = document.getElementById('newMessageText');
-            const chatHistoryContainer = document.getElementById('chat-history-container');
+        function initializeRealTimeChat(sender) {
             const requestId = @(Model.TattooRequest?.Id ?? 0);
+            if (requestId === 0) return;
 
-            sendMessageBtn.addEventListener('click', function () {
-                const messageContent = newMessageText.value;
-                if (!messageContent.trim()) {
-                    toastr.warning('A mensagem não pode estar vazia.');
-                    return;
-                }
+            const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+            const chatHistoryContainer = document.getElementById('chat-history-container');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const newMessageText = document.getElementById('newMessageText');
 
-                const data = { message: messageContent };
-
-                fetch(`?handler=SendMessage&requestId=${requestId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (!response.ok) { throw new Error('Falha na resposta da rede.'); }
-                    return response.json();
-                })
-                .then(result => {
-                    appendMessageToHistory(result);
-                    newMessageText.value = '';
-                    toastr.success('Mensagem enviada com sucesso!');
-                })
-                .catch(error => toastr.error('Ocorreu um erro ao enviar a mensagem.'));
+            connection.on("ReceiveMessage", function (receivedSender, message, sentAt) {
+                appendMessageToHistory(receivedSender, message, sentAt);
             });
 
-            function appendMessageToHistory(msgData) {
+            connection.start().then(function () {
+                connection.invoke("AddToGroup", requestId.toString()).catch(err => console.error(err.toString()));
+                sendMessageBtn.disabled = false;
+            }).catch(function (err) {
+                return console.error(err.toString());
+            });
+
+            sendMessageBtn.addEventListener("click", function (event) {
+                const message = newMessageText.value;
+                if (message) {
+                    connection.invoke("SendMessage", requestId, sender, message).catch(err => console.error(err.toString()));
+                    newMessageText.value = "";
+                }
+                event.preventDefault();
+            });
+
+            function appendMessageToHistory(msgSender, message, sentAt) {
+                const alignment = msgSender === sender ? "d-flex justify-content-end" : "d-flex justify-content-start";
+                const bgColor = msgSender === sender ? "#cfe2ff" : "#f8f9fa";
+
                 const messageWrapper = document.createElement('div');
-                messageWrapper.className = 'mb-3 d-flex justify-content-end';
-
-                const messageBubble = document.createElement('div');
-                messageBubble.className = 'p-3 rounded';
-                messageBubble.style.maxWidth = '70%';
-                messageBubble.style.backgroundColor = '#cfe2ff';
-
-                const messageText = document.createElement('p');
-                messageText.className = 'mb-1';
-                messageText.textContent = msgData.message;
-
-                const messageTime = document.createElement('small');
-                messageTime.className = 'text-muted d-block text-end';
-                messageTime.textContent = msgData.sentAt;
-
-                messageBubble.appendChild(messageText);
-                messageBubble.appendChild(messageTime);
-                messageWrapper.appendChild(messageBubble);
+                messageWrapper.className = `mb-3 ${alignment}`;
+                messageWrapper.innerHTML = `
+                    <div class="p-3 rounded" style="max-width: 70%; background-color: ${bgColor};">
+                        <p class="mb-1">${message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                        <small class="text-muted d-block text-end">${sentAt}</small>
+                    </div>`;
 
                 chatHistoryContainer.appendChild(messageWrapper);
                 chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
