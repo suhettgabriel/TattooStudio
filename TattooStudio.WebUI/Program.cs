@@ -27,6 +27,7 @@ builder.Services.AddScoped<IFaqRepository, FaqRepository>();
 builder.Services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IQuoteRepository, QuoteRepository>();
+builder.Services.AddScoped<ISharedDocumentRepository, SharedDocumentRepository>();
 
 builder.Services.AddSignalR();
 

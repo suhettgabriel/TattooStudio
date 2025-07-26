@@ -62,13 +62,9 @@ namespace TattooStudio.WebUI.Pages.Admin.Gallery
             var imageToDelete = await _galleryRepo.GetByIdAsync(id);
             if (imageToDelete != null)
             {
-                _fileStorage.DeleteFile(imageToDelete.ImageUrl, "gallery");
+                _fileStorage.DeleteFile(imageToDelete.ImageUrl);
                 await _galleryRepo.DeleteAsync(id);
                 TempData["SuccessMessage"] = "Imagem removida da galeria com sucesso!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Imagem não encontrada.";
             }
 
             return RedirectToPage();

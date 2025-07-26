@@ -36,7 +36,14 @@ namespace TattooStudio.Core.Entities
         public string? BodyPartPhotoUrl { get; set; }
 
         public string? MagicLinkToken { get; set; }
+
         public DateTime? MagicLinkTokenExpiration { get; set; }
+
+        [Display(Name = "Consentimento Concedido")]
+        public bool ConsentGiven { get; set; } = false; 
+
+        [Display(Name = "Data do Consentimento")]
+        public DateTime? ConsentDate { get; set; }
 
         public DateTime SubmissionDate { get; set; } = DateTime.Now;
 

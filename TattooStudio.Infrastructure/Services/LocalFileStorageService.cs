@@ -16,17 +16,11 @@ namespace TattooStudio.Infrastructure.Services
         public async Task<string> SaveFileAsync(IFormFile file, string subfolder)
         {
             if (file == null || file.Length == 0)
-            {
                 return string.Empty;
-            }
 
-            var uploadsRootFolder = Path.Combine(_env.WebRootPath, "uploads");
-            var targetFolder = Path.Combine(uploadsRootFolder, subfolder);
-
+            var targetFolder = Path.Combine(_env.WebRootPath, "uploads", subfolder);
             if (!Directory.Exists(targetFolder))
-            {
                 Directory.CreateDirectory(targetFolder);
-            }
 
             var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             var filePath = Path.Combine(targetFolder, uniqueFileName);
@@ -36,16 +30,14 @@ namespace TattooStudio.Infrastructure.Services
                 await file.CopyToAsync(fileStream);
             }
 
-            var fileUrl = $"uploads/{subfolder}/{uniqueFileName}";
-            return fileUrl.Replace('\\', '/');
+            return $"uploads/{subfolder}/{uniqueFileName}".Replace('\\', '/');
         }
 
-        public void DeleteFile(string fileUrl, string subfolder)
+        public void DeleteFile(string fileUrl)
         {
             if (string.IsNullOrEmpty(fileUrl)) return;
 
-            var fileName = Path.GetFileName(fileUrl);
-            var filePath = Path.Combine(_env.WebRootPath, "uploads", subfolder, fileName);
+            var filePath = Path.Combine(_env.WebRootPath, fileUrl.Replace('/', Path.DirectorySeparatorChar));
 
             if (File.Exists(filePath))
             {

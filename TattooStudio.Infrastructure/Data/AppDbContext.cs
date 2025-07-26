@@ -22,5 +22,7 @@ namespace TattooStudio.Infrastructure.Data
         public DbSet<GalleryImage> GalleryImages { get; set; }
         public DbSet<FaqItem> FaqItems { get; set; }
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public DbSet<SharedDocument> SharedDocuments { get; set; }
+
     }
 }

@@ -1,0 +1,90 @@
+﻿@page
+@model TattooStudio.WebUI.Pages.Admin.Documents.IndexModel
+@{
+    ViewData["Title"] = "Gerenciar Documentos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Novo Documento</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" asp-page-handler="Upload">
+                    <p class="text-muted small">Faça o upload de arquivos (PDFs de cuidados, etc.) para disponibilizar no Portal do Cliente.</p>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="mb-3">
+                        <label asp-for="UploadedFile" class="form-label">Arquivo (PDF, Imagem, etc.)</label>
+                        <input asp-for="UploadedFile" type="file" class="form-control" required />
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Enviar Arquivo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Documentos Disponíveis</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nome do Arquivo</th>
+                                <th>Data de Envio</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model.Documents)
+                            {
+                                <tr>
+                                    <td><a href="~/@doc.FileUrl" target="_blank">@doc.FileName</a></td>
+                                    <td>@doc.UploadedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@doc.Id" class="d-inline delete-form">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Você tem certeza?',
+                    text: "Este arquivo será removido permanentemente.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sim, excluir!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

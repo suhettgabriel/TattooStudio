@@ -12,16 +12,29 @@ namespace TattooStudio.WebUI.Pages.Portal
     {
         private readonly ITattooRequestRepository _requestRepo;
         private readonly IQuoteRepository _quoteRepo;
+        private readonly ISystemSettingRepository _settingsRepo;
+        private readonly ISharedDocumentRepository _docRepo;
 
-        public DashboardModel(ITattooRequestRepository requestRepo, IQuoteRepository quoteRepo)
+        public DashboardModel(
+            ITattooRequestRepository requestRepo,
+            IQuoteRepository quoteRepo,
+            ISystemSettingRepository settingsRepo,
+            ISharedDocumentRepository docRepo)
         {
             _requestRepo = requestRepo;
             _quoteRepo = quoteRepo;
+            _settingsRepo = settingsRepo;
+            _docRepo = docRepo;
         }
 
         public TattooRequest TattooRequest { get; set; }
         public Quote? PendingQuote { get; set; }
         public Appointment? ConfirmedAppointment { get; set; }
+        public SystemSetting Settings { get; set; }
+        public IList<SharedDocument> Documents { get; set; }
+
+        [BindProperty]
+        public bool IsConsentGiven { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -32,17 +45,17 @@ namespace TattooStudio.WebUI.Pages.Portal
             }
 
             TattooRequest = await _requestRepo.GetRequestByIdAsync(requestId);
-
             if (TattooRequest == null)
             {
                 return NotFound("Sua solicitação não foi encontrada.");
             }
 
+            Settings = await _settingsRepo.GetSettingsAsync();
+            Documents = await _docRepo.GetAllAsync();
+
             if (TattooRequest.Status == RequestStatus.OrcamentoEnviado)
             {
-                PendingQuote = TattooRequest.Quotes
-                    .OrderByDescending(q => q.CreatedAt)
-                    .FirstOrDefault(q => q.Status == QuoteStatus.Pendente);
+                PendingQuote = TattooRequest.Quotes.FirstOrDefault(q => q.Status == QuoteStatus.Pendente);
             }
 
             if (TattooRequest.Status == RequestStatus.Agendado)
@@ -51,6 +64,28 @@ namespace TattooStudio.WebUI.Pages.Portal
             }
 
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostGiveConsentAsync(int requestId)
+        {
+            if (!IsConsentGiven)
+            {
+                ModelState.AddModelError("IsConsentGiven", "Você precisa aceitar os termos para continuar.");
+                return await OnGetAsync();
+            }
+
+            var request = await _requestRepo.GetRequestByIdAsync(requestId);
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            request.ConsentGiven = true;
+            request.ConsentDate = DateTime.UtcNow;
+            await _requestRepo.UpdateAsync(request);
+
+            TempData["SuccessMessage"] = "Consentimento registrado com sucesso. Obrigado!";
+            return RedirectToPage();
         }
 
         public async Task<IActionResult> OnPostApproveQuoteAsync(int requestId, int quoteId)
