@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
+using System.Text;
 using TattooStudio.Application.Interfaces;
 using TattooStudio.Core.Entities;
 using TattooStudio.Core.Enums;
@@ -20,6 +21,7 @@ namespace TattooStudio.WebUI.Pages.Portal
 
         public TattooRequest TattooRequest { get; set; }
         public Quote? PendingQuote { get; set; }
+        public Appointment? ConfirmedAppointment { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -36,9 +38,17 @@ namespace TattooStudio.WebUI.Pages.Portal
                 return NotFound("Sua solicitação não foi encontrada.");
             }
 
-            PendingQuote = TattooRequest.Quotes
-                .OrderByDescending(q => q.CreatedAt)
-                .FirstOrDefault(q => q.Status == QuoteStatus.Pendente);
+            if (TattooRequest.Status == RequestStatus.OrcamentoEnviado)
+            {
+                PendingQuote = TattooRequest.Quotes
+                    .OrderByDescending(q => q.CreatedAt)
+                    .FirstOrDefault(q => q.Status == QuoteStatus.Pendente);
+            }
+
+            if (TattooRequest.Status == RequestStatus.Agendado)
+            {
+                ConfirmedAppointment = TattooRequest.Appointment;
+            }
 
             return Page();
         }
@@ -75,6 +85,40 @@ namespace TattooStudio.WebUI.Pages.Portal
 
             TempData["SuccessMessage"] = "Orçamento recusado. Sua solicitação foi movida para os arquivos.";
             return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnGetDownloadCalendarFile(int appointmentId)
+        {
+            var requestIdClaim = User.FindFirst("TattooRequestId");
+            if (requestIdClaim == null || !int.TryParse(requestIdClaim.Value, out var requestId))
+            {
+                return Forbid();
+            }
+
+            var request = await _requestRepo.GetRequestByIdAsync(requestId);
+            var appointment = request?.Appointment;
+
+            if (appointment == null || appointment.Id != appointmentId)
+            {
+                return NotFound();
+            }
+
+            var calendarContent = new StringBuilder();
+            calendarContent.AppendLine("BEGIN:VCALENDAR");
+            calendarContent.AppendLine("VERSION:2.0");
+            calendarContent.AppendLine("PRODID:-//TattooStudio//Appointment");
+            calendarContent.AppendLine("BEGIN:VEVENT");
+            calendarContent.AppendLine($"UID:{appointment.Id}@tattoostudio.com");
+            calendarContent.AppendLine($"DTSTAMP:{DateTime.UtcNow:yyyyMMddTHHmmssZ}");
+            calendarContent.AppendLine($"DTSTART:{appointment.Start:yyyyMMddTHHmmss}");
+            calendarContent.AppendLine($"DTEND:{appointment.End:yyyyMMddTHHmmss}");
+            calendarContent.AppendLine($"SUMMARY:{appointment.Title}");
+            calendarContent.AppendLine($"LOCATION:{request.Studio?.Address}, {request.Studio?.City}");
+            calendarContent.AppendLine("END:VEVENT");
+            calendarContent.AppendLine("END:VCALENDAR");
+
+            var calendarBytes = Encoding.UTF8.GetBytes(calendarContent.ToString());
+            return File(calendarBytes, "text/calendar", "agendamento-tatuagem.ics");
         }
     }
 }
